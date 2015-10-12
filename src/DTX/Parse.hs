@@ -4,16 +4,10 @@ module DTX.Parse
     (
         readFile
       , parseText
-      , Line
-      , Object
-      , objectKey
-      , objectValue
-      , objectChannel
-      , Header
-      , headerKey
-      , headerValue
-      , headerChannel
-      , Comment
+      , Line(..)
+      , Object(..)
+      , Header(..)
+      , Comment(..)
       , object
       , header
       , comment

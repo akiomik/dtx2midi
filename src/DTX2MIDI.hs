@@ -16,7 +16,7 @@ import qualified Haskore.Music.Rhythmic as Rhythmic
 
 import Control.Monad (join)
 import Data.Function (on)
-import Data.List (partition, groupBy)
+import Data.List (partition, groupBy, (\\), sortBy)
 import Data.Maybe (maybeToList, listToMaybe)
 import qualified Data.Text as T
 import DTX.Parse
@@ -47,10 +47,9 @@ bpm dtx =
     isBPM = (== "BPM") . headerKey
 
 -- | DTXデータをMIDIデータに変換
--- FIXME: 小節がまるまる休みのところをカウントできていない
 toMIDI :: DTX -> IO (MIDI instr)
 toMIDI lines = do
-    let group = groupBy sameKey objects
+    let group = groupBy sameKey fullObjects
     let midi = foldl1 (+:+) $ map toMeasure group
     return $ case bpm lines of
         Nothing -> midi
@@ -60,6 +59,9 @@ toMIDI lines = do
     toMeasure = foldl1 (=:=) . map toNote
     sameKey = (==) `on` objectKey
     objects = (maybeToList . object) =<< lines
+    keys = map objectKey objects
+    completion = objectCompletion keys
+    fullObjects = sortBy (compare `on` objectKey) $ objects ++ completion
 
 -- | チャンネルからドラム音源へマッピング
 -- TODO: ボリューム等の対応
@@ -100,3 +102,17 @@ parseObjectValue =
     oddEven = partition (odd . fst) . zip [0..] 
     parse ((_, a), (_, b)) = T.pack $ a:[b]
 
+-- | 疎になっている小節のオブジェクトを休符で補完する
+objectCompletion :: [T.Text] -> [Object]
+objectCompletion keys =
+    map (\key -> Object key "11" "00") $ keyCompletion keys \\ keys
+
+-- | 疎になっている小節のキーを補完する
+keyCompletion :: [T.Text] -> [T.Text]
+keyCompletion ts =
+    map (T.pack . format) [1..((read $ T.unpack $ last ts) :: Int)]
+  where
+    format a
+        | a < 10 = "00" ++ show a
+        | a < 100 = "0" ++ show a
+        | otherwise = show a
