@@ -8,7 +8,19 @@ packages:
 - '.'
 
 # Packages to be pulled from upstream that are not in the resolver (e.g., acme-missiles-0.3)
-extra-deps: []
+extra-deps: [
+    # for midi
+    haskore-0.2.0.7
+  , event-list-0.1.1.2
+  , markov-chain-0.0.3.3
+  , midi-0.2.1.5
+  , non-negative-0.1.1
+  , utility-ht-0.0.11
+  , haskore-0.2.0.7
+  , explicit-exception-0.1.7.3
+  , monoid-transformer-0.0.3
+  , data-accessor-0.2.2.6
+]
 
 # Override default flag values for local packages and extra-deps
 flags: {}

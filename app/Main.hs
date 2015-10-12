@@ -1,15 +1,16 @@
 module Main where
 
 import System.Environment (getArgs)
+import Haskore.Interface.MIDI.Render (playTimidity)
 
--- import Lib
-import DtxParser
+import DTX2MIDI
 
 main :: IO ()
 main = do
   args <- getArgs
   let file = head args
   putStrLn $ "Input file: " ++ file
-  dtx <- readFile file
-  putStrLn $ "File content: " ++ dtx
-  test dtx
+  midi <- fromFile file
+  _ <- playTimidity midi
+  return ()
+
