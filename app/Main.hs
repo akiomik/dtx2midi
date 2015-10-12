@@ -7,10 +7,11 @@ import DTX2MIDI
 
 main :: IO ()
 main = do
-  args <- getArgs
-  let file = head args
-  putStrLn $ "Input file: " ++ file
-  midi <- fromFile file
-  _ <- playTimidity midi
-  return ()
-
+    args <- getArgs
+    let input = head args
+    let output = args !! 1
+    putStrLn $ "Input file: " ++ input
+    putStrLn $ "Output file: " ++ output
+    midi <- fromFile input
+    toFile output midi
+    putStrLn "Complete!"

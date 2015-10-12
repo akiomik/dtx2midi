@@ -1,14 +1,17 @@
 module DTX2MIDI
     (
       fromFile
+    , toFile
     , toMIDI
     ) where
 
 import qualified Haskore.Basic.Duration as Duration
 import qualified Haskore.Composition.Drum as Drum
 import Haskore.Basic.Duration ((%+))
+import Haskore.Interface.MIDI.Render (fileFromGeneralMIDIMusic)
 import qualified Haskore.Music as Music
 import Haskore.Music.GeneralMIDI (Drum, line, (=:=), (+:+))
+import qualified Haskore.Music.GeneralMIDI as GM
 import qualified Haskore.Music.Rhythmic as Rhythmic
 
 import Control.Monad (join)
@@ -23,7 +26,11 @@ type DTX = [Line]
 type MIDI instr = Music.T (Rhythmic.Note Drum instr)
 type DrumSound instr = Duration.T -> Rhythmic.T Drum instr
 
--- | ファイルからMIDIデータへ変換
+-- | MIDIデータからMIDIファイルへ変換
+toFile :: FilePath -> GM.T -> IO ()
+toFile = fileFromGeneralMIDIMusic
+
+-- | DTXファイルからMIDIデータへ変換
 fromFile :: FilePath -> IO (MIDI instr)
 fromFile fp = do
     dtx <- readFile fp
