@@ -47,6 +47,7 @@ bpm dtx =
     isBPM = (== "BPM") . headerKey
 
 -- | DTXデータをMIDIデータに変換
+-- FIXME: 小節がまるまる休みのところをカウントできていない
 toMIDI :: DTX -> IO (MIDI instr)
 toMIDI lines = do
     let group = groupBy sameKey objects
