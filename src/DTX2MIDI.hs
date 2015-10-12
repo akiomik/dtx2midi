@@ -11,21 +11,26 @@ import qualified Haskore.Music as Music
 import Haskore.Music.GeneralMIDI (Drum, line, (=:=), (+:+))
 import qualified Haskore.Music.Rhythmic as Rhythmic
 
-import Data.Maybe (maybeToList, listToMaybe)
-import Prelude hiding (readFile)
-import DTX.Parse
 import Control.Monad (join)
-import qualified Data.Text as T
-import Data.List (partition, groupBy)
 import Data.Function (on)
+import Data.List (partition, groupBy)
+import Data.Maybe (maybeToList, listToMaybe)
+import qualified Data.Text as T
+import DTX.Parse
+import Prelude hiding (readFile)
 
-fromFile :: FilePath -> IO (Music.T (Rhythmic.Note Drum instr))
+type DTX = [Line]
+type MIDI instr = Music.T (Rhythmic.Note Drum instr)
+type DrumSound instr = Duration.T -> Rhythmic.T Drum instr
+
+-- | ファイルからMIDIデータへ変換
+fromFile :: FilePath -> IO (MIDI instr)
 fromFile fp = do
     dtx <- readFile fp
     toMIDI dtx
 
 -- | BPMを取得
-bpm :: [Line] -> Maybe Double
+bpm :: DTX -> Maybe Double
 bpm dtx =
     fmap readValue $ listToMaybe $ filter isBPM headers
   where
@@ -34,8 +39,8 @@ bpm dtx =
     readValue = read . T.unpack . headerValue
     isBPM = (== "BPM") . headerKey
 
--- | パース済みDTXをMIDIデータに変換
-toMIDI :: [Line] -> IO (Music.T (Rhythmic.Note Drum instr))
+-- | DTXデータをMIDIデータに変換
+toMIDI :: DTX -> IO (MIDI instr)
 toMIDI lines = do
     let group = groupBy sameKey objects
     let midi = foldl1 (+:+) $ map toMeasure group
@@ -48,9 +53,10 @@ toMIDI lines = do
     sameKey = (==) `on` objectKey
     objects = (maybeToList . object) =<< lines
 
+-- | チャンネルからドラム音源へマッピング
 -- TODO: ボリューム等の対応
 -- TODO: BPMの変更などのコントロール系の処理
-chanToDrum :: T.Text -> Duration.T -> Rhythmic.T Drum instr
+chanToDrum :: T.Text -> DrumSound instr
 chanToDrum "11" d = Drum.toMusicDefaultAttr Drum.ClosedHiHat d
 chanToDrum "12" d = Drum.toMusicDefaultAttr Drum.AcousticSnare d
 chanToDrum "13" d = Drum.toMusicDefaultAttr Drum.AcousticBassDrum d
@@ -67,7 +73,7 @@ chanToDrum  _   d = Music.rest d
 
 -- | ドラム音源 drum と オブジェクト値 t をmidiデータに変換する
 -- TODO: 変拍子対応
-valueToNote :: (Duration.T -> Rhythmic.T Drum instr) -> T.Text -> Music.T (Rhythmic.Note Drum instr)
+valueToNote :: DrumSound instr -> T.Text -> MIDI instr
 valueToNote drum t =
     line $ map note objs
   where
