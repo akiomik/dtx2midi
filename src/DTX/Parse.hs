@@ -39,6 +39,7 @@ data Header = Header
     }
   deriving (Show, Eq)
 
+-- TODO: objectValueの時点でノートをパースしたい
 data Object = Object
     {
         objectKey :: Text
