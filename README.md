@@ -1,5 +1,4 @@
 # dtx2midi
-=============
 
 .dtx -> .midi converter
 
