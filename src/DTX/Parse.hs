@@ -83,12 +83,22 @@ parseHeaderKey =
     string "TITLE"
         <|> string "ARTIST"
         <|> string "BPM"
+        <|> string "BASEBPM"
         <|> string "DLEVEL"
+        <|> string "GLEVEL"
+        <|> string "BLEVEL"
         <|> string "DTXVPLAYSPEED"
         <|> string "BGMWAV"
         <|> string "WAV"
         <|> string "VOLUME"
         <|> string "PAN"
+        <|> string "PREVIEW"
+        <|> string "PREIMAGE"
+        <|> string "BACKGROUND"
+        <|> string "BACKGROUND_GR"
+        <|> string "GENRE"
+        <|> string "DTXC_CHIPPALETTE"
+        <|> string "DTXC_LANEBINDEDCHIP"
 
 -- TODO
 parseChannel :: Parser Text
