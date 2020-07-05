@@ -1,3 +1,5 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 module DTX2MIDI
     (
       fromFile
