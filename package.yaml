@@ -1,0 +1,55 @@
+name:                dtx2midi
+version:             0.1.0.0
+github:              "akiomik/dtx2midi"
+license:             BSD3
+author:              "Akiomi KAMAKURA"
+maintainer:          "akiomik@gmail.com"
+copyright:           "Copyright Akiomi KAMAKURA (c) 2015"
+
+extra-source-files:
+- README.md
+
+# Metadata used when publishing your package
+synopsis:            .dtx -> .midi converter
+category:            Tool
+
+# To avoid duplicated efforts in documentation and dealing with the
+# complications of embedding Haddock markup inside cabal files, it is
+# common to point users to the README.md file.
+description:         Please see the README on GitHub at <https://github.com/akiomik/dtx2midi>
+homepage:            https://github.com/akiomik/dtx2midi
+
+dependencies:
+- base >= 4.7 && < 5
+- attoparsec
+- bytestring
+- conduit >= 1.0
+- conduit-extra
+- haskore
+- resourcet
+- text
+
+library:
+  source-dirs: src
+
+executables:
+  dtx2midi-exe:
+    main:                Main.hs
+    source-dirs:         app
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - dtx2midi
+
+tests:
+  dtx2midi-test:
+    main:                Spec.hs
+    source-dirs:         test
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - dtx2midi
