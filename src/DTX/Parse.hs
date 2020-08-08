@@ -112,7 +112,7 @@ parseHeaderKey =
 
 -- TODO
 parseChannel :: Parser Text
-parseChannel = takeTill (== ':')
+parseChannel = takeTill (\w -> w == ' ' || w == ':')
 
 parseValue :: Parser Text
 parseValue = takeTill isEndOfLine
@@ -122,7 +122,7 @@ parseHeader = do
     char '#'
     key <- parseHeaderKey
     chan <- parseChannel
-    char ':'
+    option ':' $ char ':'
     skipMany space
     value <- parseValue
     Header <$> pure key <*> pure chan <*> pure value
@@ -138,7 +138,7 @@ parseObject = do
     char '#'
     key <- parseObjectKey
     chan <- parseChannel
-    char ':'
+    option ':' $ char ':'
     skipMany space
     value <- parseValue
     Object <$> pure key <*> pure chan <*> pure value
