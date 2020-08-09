@@ -5,6 +5,12 @@ module DTX2MIDI
       fromFile
     , toFile
     , toMIDI
+
+    -- for testing
+    , bpm
+    , parseObjectValue
+    , keyCompletion
+    , objectCompletion
     ) where
 
 import qualified Haskore.Basic.Duration as Duration
@@ -101,7 +107,7 @@ parseObjectValue :: T.Text -> [T.Text]
 parseObjectValue =
     map parse . uncurry zip . oddEven . T.unpack
   where
-    oddEven = partition (odd . fst) . zip [0..] 
+    oddEven = partition (even . fst) . zip [0..]
     parse ((_, a), (_, b)) = T.pack $ a:[b]
 
 -- | 疎になっている小節のオブジェクトを休符で補完する

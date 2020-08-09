@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: f9317f99fdf872a343dafa5c421a2525dc18e8a13bd87db987fca493dbe160c5
+-- hash: 7ecacf9357967e7f836d987bf570cd0ac728cb905c037c798f61549833c8354c
 
 name:           dtx2midi
 version:        0.2.0.0
@@ -68,6 +68,7 @@ test-suite dtx2midi-test
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   other-modules:
+      DTX2MIDI.DTX2MIDISpec
       Paths_dtx2midi
   hs-source-dirs:
       test
@@ -80,6 +81,7 @@ test-suite dtx2midi-test
     , conduit-extra
     , dtx2midi
     , haskore
+    , hspec
     , resourcet
     , text
   default-language: Haskell2010
