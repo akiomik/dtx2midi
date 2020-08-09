@@ -1,5 +1,7 @@
 # dtx2midi
 
+[![Haskell CI](https://github.com/akiomik/dtx2midi/workflows/Haskell%20CI/badge.svg)](https://github.com/akiomik/dtx2midi/actions?query=workflow%3A%22Haskell+CI%22)
+
 .dtx -> .midi converter
 
 ## Requirements
