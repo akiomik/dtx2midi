@@ -57,7 +57,7 @@ bpm dtx =
 -- | DTXデータをMIDIデータに変換
 toMIDI :: DTX -> IO (MIDI instr)
 toMIDI lines = do
-    let group = groupBy sameKey fullObjects
+    let group = groupBy sameKey filteredObjects
     let midi = foldl1 (+:+) $ map toMeasure group
     return $ case bpm lines of
         Nothing -> midi
@@ -70,6 +70,7 @@ toMIDI lines = do
     keys = map objectKey objects
     completion = objectCompletion keys
     fullObjects = sortBy (compare `on` objectKey) $ objects ++ completion
+    filteredObjects = filter (\o -> objectKey o /= "000") fullObjects -- BGM用の小節000は無視
 
 -- | チャンネルからドラム音源へマッピング
 -- TODO: ボリューム等の対応
