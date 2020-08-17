@@ -4,10 +4,10 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 0582c8d287bff5c7afa95019811c4ba7e899ef84b56733f29b6069b0020bf9a0
+-- hash: d30e6b1358f5acd7db1bb55e4e4fd60e63319c77e9c02cefc8046ec2c9497862
 
 name:           dtx2midi
-version:        0.2.0.0
+version:        0.2.0.1
 synopsis:       .dtx -> .midi converter
 description:    Please see the README on GitHub at <https://github.com/akiomik/dtx2midi>
 category:       Tool
