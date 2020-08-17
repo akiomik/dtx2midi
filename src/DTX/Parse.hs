@@ -20,13 +20,13 @@ import Control.Applicative
 import Control.Monad.Trans.Resource (MonadThrow, runResourceT)
 import Data.Attoparsec.Text
 import Data.ByteString (ByteString)
-import Data.Conduit (Conduit, Sink, ($$), ($=), (=$=), (=$))
-import Data.Conduit.Attoparsec (sinkParser, conduitParser)
+import Data.Conduit (ConduitT, Void, runConduit, (.|))
+import Data.Conduit.Attoparsec (sinkParser)
 import qualified Data.Conduit.Binary as CB
 import qualified Data.Conduit.List as CL
 import Data.Conduit.Text (decode, utf8)
 import Data.Text (Text, pack)
-import Prelude hiding (takeWhile, readFile)
+import Prelude hiding (readFile)
 
 type Channel = Text
 type Comment = Text
@@ -161,13 +161,13 @@ parseLines :: Parser [Line]
 parseLines = many1 parseLine
 
 readFile :: FilePath -> IO [Line]
-readFile fp = runResourceT $ CB.sourceFile fp $$ sinkLines
+readFile fp = runResourceT $ runConduit $ CB.sourceFile fp .| sinkLines
 
 parseText :: Text -> IO [Line]
-parseText t = runResourceT $ CL.sourceList [t] $$ sinkTextLines
+parseText t = runConduit $ CL.sourceList [t] .| sinkTextLines
 
-sinkLines :: (MonadThrow m) => Sink ByteString m [Line]
-sinkLines = decode utf8 =$= sinkParser parseLines
+sinkLines :: (MonadThrow m) => ConduitT ByteString Void m [Line]
+sinkLines = decode utf8 .| sinkParser parseLines
 
-sinkTextLines :: (MonadThrow m) => Sink Text m [Line]
+sinkTextLines :: (MonadThrow m) => ConduitT Text Void m [Line]
 sinkTextLines = sinkParser parseLines
