@@ -25,7 +25,9 @@ dependencies:
 - bytestring
 - conduit >= 1.0
 - conduit-extra
+- event-list
 - haskore
+- midi
 - resourcet
 - text
 

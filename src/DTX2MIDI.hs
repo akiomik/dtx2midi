@@ -11,16 +11,22 @@ module DTX2MIDI
     , parseObjectValue
     , keyCompletion
     , objectCompletion
+    , toTempo
     ) where
 
 import qualified Haskore.Basic.Duration as Duration
 import qualified Haskore.Composition.Drum as Drum
 import Haskore.Basic.Duration ((%+))
-import Haskore.Interface.MIDI.Render (fileFromGeneralMIDIMusic)
+import Haskore.Interface.MIDI.Render (generalMidi)
 import qualified Haskore.Music as Music
 import Haskore.Music.GeneralMIDI (Drum, line, (=:=), (+:+))
-import qualified Haskore.Music.GeneralMIDI as GM
 import qualified Haskore.Music.Rhythmic as Rhythmic
+import qualified Sound.MIDI.File.Save as SaveMidi
+import qualified Sound.MIDI.File.Event.Meta as MetaEvent
+import qualified Sound.MIDI.File.Event as MIDIEvent
+import qualified Sound.MIDI.File as MIDIFile
+import qualified Data.EventList.Relative.TimeBody as EventList
+import Data.EventList.Relative.MixedBody ((/.), (./), )
 
 import Control.Monad (join)
 import Data.Function (on)
@@ -35,14 +41,23 @@ type MIDI instr = Music.T (Rhythmic.Note Drum instr)
 type DrumSound instr = Duration.T -> Rhythmic.T Drum instr
 
 -- | MIDIデータからMIDIファイルへ変換
-toFile :: FilePath -> GM.T -> IO ()
-toFile = fileFromGeneralMIDIMusic
+toFile :: FilePath -> MIDIFile.T -> IO ()
+toFile filename midi = SaveMidi.toFile filename midi
 
 -- | DTXファイルからMIDIデータへ変換
-fromFile :: FilePath -> IO (MIDI instr)
+fromFile :: FilePath -> IO (MIDIFile.T)
 fromFile fp = do
     dtx <- readFile fp
     toMIDI dtx
+
+-- | SetTempoイベントを上書きする
+mapSetTempo :: (MIDIFile.Tempo -> MIDIFile.Tempo) -> MIDIFile.T -> MIDIFile.T
+mapSetTempo f midi =
+    MIDIFile.mapTrack (EventList.mapBody ff) midi
+  where
+    ff :: MIDIEvent.T -> MIDIEvent.T
+    ff (MIDIEvent.MetaEvent (MetaEvent.SetTempo t)) = MIDIEvent.MetaEvent (MetaEvent.SetTempo $ f t)
+    ff e = e
 
 -- | BPMを取得
 bpm :: DTX -> Maybe Double
@@ -54,14 +69,20 @@ bpm dtx =
     readValue = read . T.unpack . headerValue
     isBPM = (== "BPM") . headerKey
 
+-- bpm (beat/minute) を tempo (μs/beat) に変換する
+toTempo :: Double -> MIDIFile.Tempo
+toTempo bpm = MIDIFile.toTempo $ round $ 1000000 / (bpm / 60)
+
 -- | DTXデータをMIDIデータに変換
-toMIDI :: DTX -> IO (MIDI instr)
+--   NOTE: changeTempoは音価が変わるだけでBPM自体は変化しないため、
+--         global tempo (bpm 120) を無視して上書き
+toMIDI :: DTX -> IO (MIDIFile.T)
 toMIDI lines = do
     let group = groupBy sameKey filteredObjects
     let midi = foldl1 (+:+) $ map toMeasure group
     return $ case bpm lines of
-        Nothing -> midi
-        Just b -> Music.changeTempo (realToFrac b / 60) midi
+        Nothing -> generalMidi midi
+        Just b -> mapSetTempo (\t -> toTempo b) $ generalMidi $ Music.changeTempo 2 midi
   where
     toNote o = valueToNote (chanToDrum $ objectChannel o) $ objectValue o
     toMeasure = foldl1 (=:=) . map toNote

@@ -2,10 +2,15 @@
 
 module DTX2MIDI.DTX2MIDISpec where
 
-import Control.Exception (evaluate)
 import Test.Hspec
--- import qualified Haskore.Music as Music
-import Haskore.Music.GeneralMIDI as GM
+
+import qualified Sound.MIDI.File     as MIDIFile
+import Sound.MIDI.File.Event            (T(MIDIEvent, MetaEvent))
+import Sound.MIDI.File.Event.Meta       (T(SetTempo))
+import Sound.MIDI.Message.Channel       (T(Cons), Channel, Body(Voice), toChannel)
+import Sound.MIDI.Message.Channel.Voice (T(NoteOn, NoteOff, ProgramChange), toVelocity, toPitch, toProgram)
+import qualified Data.EventList.Relative.TimeBody as EventList
+import Data.EventList.Relative.MixedBody ((/.), (./))
 
 import DTX.Parse
 import DTX2MIDI
@@ -35,3 +40,102 @@ spec = do
       objectCompletion ["001", "005"] `shouldBe` ([ Object "002" "11" "00"
                                                   , Object "003" "11" "00"
                                                   , Object "004" "11" "00" ])
+
+  describe "toTempo" $ do
+    it "returns tempo which has a specified bpm" $ do
+      toTempo 120 `shouldBe` 500000
+      toTempo 140 `shouldBe` 428571
+
+  describe "toMIDI" $ do
+    it "returns midi with specified bpm when the header has a BPM" $ do
+      -- input
+      let dtx = ([ LineHeader $ Header "BPM" "" "180"
+                 , LineObject $ Object "001" "11" "0101010101010101"
+                 , LineObject $ Object "001" "12" "00020002"
+                 , LineObject $ Object "001" "13" "0300000003030000" ])
+
+      -- expected
+      let chan = toChannel 9
+      let vel = toVelocity 64
+      let bd = toPitch 35
+      let sd = toPitch 38
+      let hh = toPitch 42
+      let events = [ 0  /. MetaEvent (SetTempo 333333) ./
+                     0  /. MIDIEvent (Cons chan (Voice (ProgramChange (toProgram 0)))) ./
+                     0  /. MIDIEvent (Cons chan (Voice (NoteOn  bd vel))) ./
+                     0  /. MIDIEvent (Cons chan (Voice (NoteOn  hh vel))) ./
+                     48 /. MIDIEvent (Cons chan (Voice (NoteOff bd vel))) ./
+                     0  /. MIDIEvent (Cons chan (Voice (NoteOff hh vel))) ./
+                     0  /. MIDIEvent (Cons chan (Voice (NoteOn  hh vel))) ./
+                     48 /. MIDIEvent (Cons chan (Voice (NoteOff hh vel))) ./
+                     0  /. MIDIEvent (Cons chan (Voice (NoteOn  sd vel))) ./
+                     0  /. MIDIEvent (Cons chan (Voice (NoteOn  hh vel))) ./
+                     48 /. MIDIEvent (Cons chan (Voice (NoteOff hh vel))) ./
+                     0  /. MIDIEvent (Cons chan (Voice (NoteOn  hh vel))) ./
+                     48 /. MIDIEvent (Cons chan (Voice (NoteOff sd vel))) ./
+                     0  /. MIDIEvent (Cons chan (Voice (NoteOff hh vel))) ./
+                     0  /. MIDIEvent (Cons chan (Voice (NoteOn  bd vel))) ./
+                     0  /. MIDIEvent (Cons chan (Voice (NoteOn  hh vel))) ./
+                     48 /. MIDIEvent (Cons chan (Voice (NoteOff bd vel))) ./
+                     0  /. MIDIEvent (Cons chan (Voice (NoteOff hh vel))) ./
+                     0  /. MIDIEvent (Cons chan (Voice (NoteOn  bd vel))) ./
+                     0  /. MIDIEvent (Cons chan (Voice (NoteOn  hh vel))) ./
+                     48 /. MIDIEvent (Cons chan (Voice (NoteOff bd vel))) ./
+                     0  /. MIDIEvent (Cons chan (Voice (NoteOff hh vel))) ./
+                     0  /. MIDIEvent (Cons chan (Voice (NoteOn  sd vel))) ./
+                     0  /. MIDIEvent (Cons chan (Voice (NoteOn  hh vel))) ./
+                     48 /. MIDIEvent (Cons chan (Voice (NoteOff hh vel))) ./
+                     0  /. MIDIEvent (Cons chan (Voice (NoteOn  hh vel))) ./
+                     48 /. MIDIEvent (Cons chan (Voice (NoteOff sd vel))) ./
+                     0  /. MIDIEvent (Cons chan (Voice (NoteOff hh vel))) ./
+                     EventList.empty]
+      let expected = MIDIFile.Cons MIDIFile.Parallel (MIDIFile.Ticks 96) events
+
+      midi <- toMIDI dtx
+      midi `shouldBe` (expected)
+
+    it "returns midi with default bpm when the header has not a BPM" $ do
+      -- input
+      let dtx = ([ LineObject $ Object "001" "11" "0101010101010101"
+                 , LineObject $ Object "001" "12" "00020002"
+                 , LineObject $ Object "001" "13" "0300000003030000" ])
+
+      -- expected
+      let chan = toChannel 9
+      let vel = toVelocity 64
+      let bd = toPitch 35
+      let sd = toPitch 38
+      let hh = toPitch 42
+      let events = [ 0  /. MetaEvent (SetTempo 500000) ./
+                     0  /. MIDIEvent (Cons chan (Voice (ProgramChange (toProgram 0)))) ./
+                     0  /. MIDIEvent (Cons chan (Voice (NoteOn  bd vel))) ./
+                     0  /. MIDIEvent (Cons chan (Voice (NoteOn  hh vel))) ./
+                     96 /. MIDIEvent (Cons chan (Voice (NoteOff bd vel))) ./
+                     0  /. MIDIEvent (Cons chan (Voice (NoteOff hh vel))) ./
+                     0  /. MIDIEvent (Cons chan (Voice (NoteOn  hh vel))) ./
+                     96 /. MIDIEvent (Cons chan (Voice (NoteOff hh vel))) ./
+                     0  /. MIDIEvent (Cons chan (Voice (NoteOn  sd vel))) ./
+                     0  /. MIDIEvent (Cons chan (Voice (NoteOn  hh vel))) ./
+                     96 /. MIDIEvent (Cons chan (Voice (NoteOff hh vel))) ./
+                     0  /. MIDIEvent (Cons chan (Voice (NoteOn  hh vel))) ./
+                     96 /. MIDIEvent (Cons chan (Voice (NoteOff sd vel))) ./
+                     0  /. MIDIEvent (Cons chan (Voice (NoteOff hh vel))) ./
+                     0  /. MIDIEvent (Cons chan (Voice (NoteOn  bd vel))) ./
+                     0  /. MIDIEvent (Cons chan (Voice (NoteOn  hh vel))) ./
+                     96 /. MIDIEvent (Cons chan (Voice (NoteOff bd vel))) ./
+                     0  /. MIDIEvent (Cons chan (Voice (NoteOff hh vel))) ./
+                     0  /. MIDIEvent (Cons chan (Voice (NoteOn  bd vel))) ./
+                     0  /. MIDIEvent (Cons chan (Voice (NoteOn  hh vel))) ./
+                     96 /. MIDIEvent (Cons chan (Voice (NoteOff bd vel))) ./
+                     0  /. MIDIEvent (Cons chan (Voice (NoteOff hh vel))) ./
+                     0  /. MIDIEvent (Cons chan (Voice (NoteOn  sd vel))) ./
+                     0  /. MIDIEvent (Cons chan (Voice (NoteOn  hh vel))) ./
+                     96 /. MIDIEvent (Cons chan (Voice (NoteOff hh vel))) ./
+                     0  /. MIDIEvent (Cons chan (Voice (NoteOn  hh vel))) ./
+                     96 /. MIDIEvent (Cons chan (Voice (NoteOff sd vel))) ./
+                     0  /. MIDIEvent (Cons chan (Voice (NoteOff hh vel))) ./
+                     EventList.empty]
+      let expected = MIDIFile.Cons MIDIFile.Parallel (MIDIFile.Ticks 96) events
+
+      midi <- toMIDI dtx
+      midi `shouldBe` (expected)
