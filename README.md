@@ -19,7 +19,7 @@ stack build
 ## Usage
 
 ```bash
-stack exec dtx2midi-exe <input.dtx> <output.midi>
+stack exec dtx2midi <input.dtx> <output.midi>
 ```
 
 ## License
