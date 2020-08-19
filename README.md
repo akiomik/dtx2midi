@@ -4,18 +4,6 @@
 
 .dtx -> .midi converter
 
-## Requirements
-
-* [stack](https://github.com/commercialhaskell/stack)
-
-## Installation
-
-```bash
-git clone https://github.com/akiomik/dtx2midi.git
-cd dtx2midi
-stack build
-```
-
 ## Usage
 
 ```
@@ -28,6 +16,20 @@ Available options:
   -i,--input DTXFILE       An input .dtx file
   -o,--output MIDIFILE     An output .midi file
   -h,--help                Show this help text
+```
+
+## Download
+
+The binaries for linux and macOS can be downloaded from the [release page](https://github.com/akiomik/dtx2midi/releases/latest).
+
+## Build from source
+
+[stack](https://github.com/commercialhaskell/stack) is required.
+
+```bash
+git clone https://github.com/akiomik/dtx2midi.git
+cd dtx2midi
+stack build
 ```
 
 ## License
