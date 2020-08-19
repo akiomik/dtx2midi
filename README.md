@@ -19,7 +19,7 @@ stack build
 ## Usage
 
 ```
-dtx2midi 0.2.0.1 - .dtx -> .midi converter
+dtx2midi 0.2.1.0 - .dtx -> .midi converter
 
 Usage: dtx2midi (-i|--input DTXFILE) (-o|--output MIDIFILE)
   Convert .dtx file into .midi file
