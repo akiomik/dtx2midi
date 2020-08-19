@@ -18,8 +18,16 @@ stack build
 
 ## Usage
 
-```bash
-stack exec dtx2midi <input.dtx> <output.midi>
+```
+dtx2midi 0.2.0.1 - .dtx -> .midi converter
+
+Usage: dtx2midi (-i|--input DTXFILE) (-o|--output MIDIFILE)
+  Convert .dtx file into .midi file
+
+Available options:
+  -i,--input DTXFILE       An input .dtx file
+  -o,--output MIDIFILE     An output .midi file
+  -h,--help                Show this help text
 ```
 
 ## License

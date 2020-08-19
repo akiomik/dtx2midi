@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: d70891b52b88f06e3082a68392a27422ebe15c8c88832246c1fc958c985f0707
+-- hash: d9ceff2be1baca079a0dab38c3e87ca73e223984084fd63a4da7539b483a1be9
 
 name:           dtx2midi
 version:        0.2.0.1
@@ -64,6 +64,7 @@ executable dtx2midi
     , event-list
     , haskore
     , midi
+    , optparse-applicative
     , resourcet
     , text
   default-language: Haskell2010
