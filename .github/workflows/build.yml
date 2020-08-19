@@ -1,0 +1,122 @@
+name: Build
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  linux:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-haskell@v1.1
+      with:
+        ghc-version: '8.8.3'
+        cabal-version: '3.0'
+        enable-stack: true
+        stack-version: 'latest'
+
+    - name: Cache
+      uses: actions/cache@v1
+      env:
+        cache-name: cache-cabal
+      with:
+        path: ~/.stack
+        key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/*.cabal') }}-${{ hashFiles('**/stack.yaml.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-build-${{ env.cache-name }}-
+          ${{ runner.os }}-build-
+          ${{ runner.os }}-
+
+    - name: Build
+      run: stack build
+    - name: Create linux executable
+      run: |
+        export DEST="dtx2midi-linux/bin"
+        mkdir -p ${DEST}
+        stack install --local-bin-path=${DEST}
+        strip ${DEST}/dtx2midi
+
+    - uses: actions/upload-artifact@v2
+      with:
+        name: dtx2midi-linux
+        path: dtx2midi-linux
+
+  macos:
+
+    runs-on: macOS-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-haskell@v1.1
+      with:
+        ghc-version: '8.8.3'
+        cabal-version: '3.0'
+        enable-stack: true
+        stack-version: 'latest'
+
+    - name: Cache
+      uses: actions/cache@v1
+      env:
+        cache-name: cache-cabal
+      with:
+        path: ~/.stack
+        key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/*.cabal') }}-${{ hashFiles('**/stack.yaml.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-build-${{ env.cache-name }}-
+          ${{ runner.os }}-build-
+          ${{ runner.os }}-
+
+    - name: Build
+      run: stack build
+    - name: Create macos executable
+      run: |
+        export DEST="dtx2midi-macos/bin"
+        mkdir -p ${DEST}
+        stack install --local-bin-path=${DEST}
+        strip ${DEST}/dtx2midi
+
+    - uses: actions/upload-artifact@v2
+      with:
+        name: dtx2midi-macos
+        path: dtx2midi-macos
+
+  # windows:
+  #
+  #   runs-on: windows-latest
+  #
+  #   steps:
+  #   - uses: actions/checkout@v2
+  #   - uses: actions/setup-haskell@v1.1
+  #     with:
+  #       ghc-version: '8.8.3'
+  #       cabal-version: '3.0'
+  #       enable-stack: true
+  #       stack-version: 'latest'
+  #
+  #   - name: Cache
+  #     uses: actions/cache@v1
+  #     env:
+  #       cache-name: cache-cabal
+  #     with:
+  #       path: ~/.stack
+  #       key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/*.cabal') }}-${{ hashFiles('**/stack.yaml.lock') }}
+  #       restore-keys: |
+  #         ${{ runner.os }}-build-${{ env.cache-name }}-
+  #         ${{ runner.os }}-build-
+  #         ${{ runner.os }}-
+  #
+  #   - name: Build
+  #     run: stack build
+  #   - name: Create windows executable
+  #     run: |
+  #       @set DEST="dtx2midi-windows/bin"
+  #       mkdir %DEST%
+  #       stack install --local-bin-path=%DEST%
+  #
+  #   - uses: actions/upload-artifact@v2
+  #     with:
+  #       name: dtx2midi-windows
+  #       path: dtx2midi-windows
