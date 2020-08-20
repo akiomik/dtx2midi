@@ -14,6 +14,13 @@ module DTX.Parse
       , isHeader
       , isComment
       , isObject
+
+      -- for testing
+      , parseHeader
+      , parseObject
+      , parseComment
+      , parseBlank
+      , parseLines
     ) where
 
 import Control.Applicative

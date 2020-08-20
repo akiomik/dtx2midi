@@ -57,3 +57,4 @@ tests:
     dependencies:
     - dtx2midi
     - hspec
+    - hspec-attoparsec
