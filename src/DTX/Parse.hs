@@ -16,10 +16,10 @@ module DTX.Parse
       , isObject
 
       -- for testing
-      , parseHeader
-      , parseObject
-      , parseComment
-      , parseBlank
+      , parseHeaderLine
+      , parseObjectLine
+      , parseCommentLine
+      , parseBlankLine
       , parseLines
     ) where
 
@@ -27,6 +27,7 @@ import Control.Applicative
 import Control.Monad.Trans.Resource (MonadThrow, runResourceT)
 import Data.Attoparsec.Text
 import Data.ByteString (ByteString)
+import Data.Char (isSpace)
 import Data.Conduit (ConduitT, Void, runConduit, (.|))
 import Data.Conduit.Attoparsec (sinkParser)
 import qualified Data.Conduit.Binary as CB
@@ -85,6 +86,12 @@ isObject :: Line -> Bool
 isObject (LineObject _) = True
 isObject _ = False
 
+spaceWithoutEOL :: Parser Char
+spaceWithoutEOL =
+    satisfy isSpaceWithoutEOL
+  where
+    isSpaceWithoutEOL c = (isSpace c) && (not $ isEndOfLine c)
+
 parseHeaderKey :: Parser Text
 parseHeaderKey =
     string "TITLE"
@@ -130,9 +137,12 @@ parseHeader = do
     key <- parseHeaderKey
     chan <- parseChannel
     option ':' $ char ':'
-    skipMany space
+    skipMany spaceWithoutEOL
     value <- parseValue
     Header <$> pure key <*> pure chan <*> pure value
+
+parseHeaderLine :: Parser Header
+parseHeaderLine = parseHeader <* endOfLine
 
 parseObjectKey :: Parser Text
 parseObjectKey = do
@@ -146,23 +156,29 @@ parseObject = do
     key <- parseObjectKey
     chan <- parseChannel
     option ':' $ char ':'
-    skipMany space
+    skipMany spaceWithoutEOL
     value <- parseValue
     Object <$> pure key <*> pure chan <*> pure value
+
+parseObjectLine :: Parser Object
+parseObjectLine = parseObject <* endOfLine
 
 parseComment :: Parser Comment
 parseComment = do
     _ <- char ';'
     takeTill isEndOfLine
 
-parseBlank :: Parser Comment
-parseBlank = endOfLine >>= return ""
+parseCommentLine :: Parser Comment
+parseCommentLine = parseComment <* endOfLine
+
+parseBlankLine :: Parser Comment
+parseBlankLine = endOfLine >>= return ""
 
 parseLine :: Parser Line
 parseLine =
-    fmap LineComment (parseComment <|> parseBlank)
-        <|> fmap LineHeader parseHeader
-        <|> fmap LineObject parseObject
+    fmap LineComment (parseCommentLine <|> parseBlankLine)
+        <|> fmap LineHeader parseHeaderLine
+        <|> fmap LineObject parseObjectLine
 
 parseLines :: Parser [Line]
 parseLines = many1 parseLine
