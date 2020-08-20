@@ -8,7 +8,6 @@ module DTX2MIDI
 
     -- for testing
     , bpm
-    , parseObjectValue
     , keyCompletion
     , objectCompletion
     , toTempo
@@ -84,7 +83,7 @@ toMIDI lines = do
         Nothing -> generalMidi midi
         Just b -> mapSetTempo (\t -> toTempo b) $ generalMidi $ Music.changeTempo 2 midi
   where
-    toNote o = valueToNote (chanToDrum $ objectChannel o) $ objectValue o
+    toNote o = valueToMIDINote (chanToDrum $ objectChannel o) $ objectValue o
     toMeasure = foldl1 (=:=) . map toNote
     sameKey = (==) `on` objectKey
     objects = (maybeToList . object) =<< lines
@@ -113,29 +112,19 @@ chanToDrum  _   d = Music.rest d
 
 -- | ドラム音源 drum と オブジェクト値 t をmidiデータに変換する
 -- TODO: 変拍子対応
-valueToNote :: DrumSound instr -> T.Text -> MIDI instr
-valueToNote drum t =
-    line $ map note objs
+valueToMIDINote :: DrumSound instr -> [Note] -> MIDI instr
+valueToMIDINote drum notes =
+    line $ map toMIDINote notes
   where
-    objs = parseObjectValue t
-    len = toInteger $ length objs
+    len = toInteger $ length notes
     d = 1 %+ len
-    note "00" = Music.rest d
-    note _ = drum d
-
--- 値を2つずつにまとめて、オブジェクト値をパースする
--- eg. "010203" -> ["01", "02", "03"]
-parseObjectValue :: T.Text -> [T.Text]
-parseObjectValue =
-    map parse . uncurry zip . oddEven . T.unpack
-  where
-    oddEven = partition (even . fst) . zip [0..]
-    parse ((_, a), (_, b)) = T.pack $ a:[b]
+    toMIDINote "00" = Music.rest d
+    toMIDINote _ = drum d
 
 -- | 疎になっている小節のオブジェクトを休符で補完する
 objectCompletion :: [T.Text] -> [Object]
 objectCompletion keys =
-    map (\key -> Object key "11" "00") $ keyCompletion keys \\ keys
+    map (\key -> Object key "11" ["00"]) $ keyCompletion keys \\ keys
 
 -- | 疎になっている小節のキーを補完する
 keyCompletion :: [T.Text] -> [T.Text]

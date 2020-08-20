@@ -8,6 +8,7 @@ module DTX.Parse
       , Object(..)
       , Header(..)
       , Comment(..)
+      , Note(..)
       , object
       , header
       , comment
@@ -33,11 +34,12 @@ import Data.Conduit.Attoparsec (sinkParser)
 import qualified Data.Conduit.Binary as CB
 import qualified Data.Conduit.List as CL
 import Data.Conduit.Text (decode, utf8)
-import Data.Text (Text, pack)
-import Prelude hiding (readFile)
+import Data.Text (Text, pack, singleton)
+import Prelude hiding (take, readFile)
 
 type Channel = Text
 type Comment = Text
+type Note = Text
 
 data Header = Header
     {
@@ -47,12 +49,11 @@ data Header = Header
     }
   deriving (Show, Eq)
 
--- TODO: objectValueの時点でノートをパースしたい
 data Object = Object
     {
         objectKey :: Text
       , objectChannel :: Channel
-      , objectValue :: Text
+      , objectValue :: [Note]
     }
   deriving (Show, Eq)
 
@@ -124,12 +125,11 @@ parseHeaderKey =
         <|> string "DTXC_CHIPPALETTE"
         <|> string "DTXC_LANEBINDEDCHIP"
 
--- TODO
 parseChannel :: Parser Text
 parseChannel = takeTill (\w -> w == ' ' || w == ':')
 
-parseValue :: Parser Text
-parseValue = takeTill isEndOfLine
+parseHeaderValue :: Parser Text
+parseHeaderValue = takeTill isEndOfLine
 
 parseHeader :: Parser Header
 parseHeader = do
@@ -138,7 +138,7 @@ parseHeader = do
     chan <- parseChannel
     option ':' $ char ':'
     skipMany spaceWithoutEOL
-    value <- parseValue
+    value <- parseHeaderValue
     Header <$> pure key <*> pure chan <*> pure value
 
 parseHeaderLine :: Parser Header
@@ -150,6 +150,13 @@ parseObjectKey = do
     n_ <- count 2 digit
     return $ pack $ n1:n_
 
+parseObjectValue :: Parser [Note]
+parseObjectValue = do
+    (filter (/= ("_" :: Text))) <$> many (parsePlaceHolder <|> parseNote)
+  where
+    parseNote = pack <$> (count 2 $ satisfy $ inClass "0-9A-Z")
+    parsePlaceHolder = singleton <$> char '_'
+
 parseObject :: Parser Object
 parseObject = do
     char '#'
@@ -157,7 +164,7 @@ parseObject = do
     chan <- parseChannel
     option ':' $ char ':'
     skipMany spaceWithoutEOL
-    value <- parseValue
+    value <- parseObjectValue
     Object <$> pure key <*> pure chan <*> pure value
 
 parseObjectLine :: Parser Object

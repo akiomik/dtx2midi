@@ -30,14 +30,17 @@ spec = do
 
   describe "parseObjectLine" $ do
     it "parse an object" $ do
-      ("#00111: 0101010101010101\n" :: Text) ~> parseObjectLine `shouldParse` (Object { objectKey = "001", objectChannel = "11", objectValue = "0101010101010101" })
+      ("#00111: 0101010101010101\n" :: Text) ~> parseObjectLine `shouldParse` (Object { objectKey = "001", objectChannel = "11", objectValue = ["01", "01", "01", "01", "01", "01", "01", "01"] })
 
     it "parse an object without space" $ do
-      ("#00112:02000200\n" :: Text) ~> parseObjectLine `shouldParse` (Object { objectKey = "001", objectChannel = "12", objectValue = "02000200" })
+      ("#00112:02000200\n" :: Text) ~> parseObjectLine `shouldParse` (Object { objectKey = "001", objectChannel = "12", objectValue = ["02", "00", "02", "00"] })
 
     -- TODO
     -- it "parse an object with comment" $ do
-    --  ("#00111: 0101010101010101 ;intro" :: Text) ~> parseObjectLine `shouldParse` (Object { objectKey = "001", objectChannel = "11", objectValue = "0101010101010101" })
+    --  ("#00111: 0101010101010101 ;intro" :: Text) ~> parseObjectLine `shouldParse` (Object { objectKey = "001", objectChannel = "11", objectValue = ["01", "01", "01", "01", "01", "01", "01", "01"] })
+
+    it "parse an object with placeholders" $ do
+      ("#00112 0002_____0002\n" :: Text) ~> parseObjectLine `shouldParse` (Object { objectKey = "001", objectChannel = "12", objectValue = ["00", "02", "00", "02"] })
 
   describe "parseCommentLine" $ do
     it "parse a comment line" $ do
@@ -54,10 +57,10 @@ spec = do
                      , LineHeader (Header { headerKey = "TITLE", headerChannel = "", headerValue = "Moon Swimming Weekender" })
                      , LineHeader (Header { headerKey = "BPM", headerChannel = "", headerValue = "136" })
                      , LineComment ""
-                     , LineObject (Object { objectKey = "001", objectChannel = "16", objectValue = "16000000" })
-                     , LineObject (Object { objectKey = "001", objectChannel = "13", objectValue = "13001300000000130000130000000000" })
-                     , LineObject (Object { objectKey = "001", objectChannel = "12", objectValue = "00000000120012000012000012120012" })
-                     , LineObject (Object { objectKey = "001", objectChannel = "18", objectValue = "0018181818181818" }) ]
+                     , LineObject (Object { objectKey = "001", objectChannel = "16", objectValue = ["16", "00", "00", "00"] })
+                     , LineObject (Object { objectKey = "001", objectChannel = "13", objectValue = ["13", "00", "13", "00", "00", "00", "00", "13", "00", "00", "13", "00", "00", "00", "00", "00"] })
+                     , LineObject (Object { objectKey = "001", objectChannel = "12", objectValue = ["00", "00", "00", "00", "12", "00", "12", "00", "00", "12", "00", "00", "12", "12", "00", "12"] })
+                     , LineObject (Object { objectKey = "001", objectChannel = "18", objectValue = ["00", "18", "18", "18", "18", "18", "18", "18"] }) ]
       ("; Created by DTXCreator\n\
        \\n\
        \#TITLE: Moon Swimming Weekender\n\

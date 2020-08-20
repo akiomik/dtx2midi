@@ -27,19 +27,15 @@ spec = do
       let dtx = [LineHeader $ Header "TITLE" "" "foo"]
       bpm dtx `shouldBe` (Nothing)
 
-  describe "parseObjectValue" $ do
-    it "returns parsed measure object values" $ do
-      parseObjectValue "010203" `shouldBe` (["01", "02", "03"])
-
   describe "keyCompletion" $ do
     it "returns filled measure ids" $ do
       keyCompletion ["001", "005"] `shouldBe` (["001", "002", "003", "004", "005"])
 
   describe "objectCompletion" $ do
     it "returns missing measure objects that are filled with empty hi-hats" $ do
-      objectCompletion ["001", "005"] `shouldBe` ([ Object "002" "11" "00"
-                                                  , Object "003" "11" "00"
-                                                  , Object "004" "11" "00" ])
+      objectCompletion ["001", "005"] `shouldBe` ([ Object "002" "11" ["00"]
+                                                  , Object "003" "11" ["00"]
+                                                  , Object "004" "11" ["00"] ])
 
   describe "toTempo" $ do
     it "returns tempo which has a specified bpm" $ do
@@ -50,9 +46,9 @@ spec = do
     it "returns midi with specified bpm when the header has a BPM" $ do
       -- input
       let dtx = ([ LineHeader $ Header "BPM" "" "180"
-                 , LineObject $ Object "001" "11" "0101010101010101"
-                 , LineObject $ Object "001" "12" "00020002"
-                 , LineObject $ Object "001" "13" "0300000003030000" ])
+                 , LineObject $ Object "001" "11" ["01", "01", "01", "01", "01", "01", "01", "01"]
+                 , LineObject $ Object "001" "12" ["00", "02", "00", "02"]
+                 , LineObject $ Object "001" "13" ["03", "00", "00", "00", "03", "03", "00", "00"] ])
 
       -- expected
       let chan = toChannel 9
@@ -96,9 +92,9 @@ spec = do
 
     it "returns midi with default bpm when the header has not a BPM" $ do
       -- input
-      let dtx = ([ LineObject $ Object "001" "11" "0101010101010101"
-                 , LineObject $ Object "001" "12" "00020002"
-                 , LineObject $ Object "001" "13" "0300000003030000" ])
+      let dtx = ([ LineObject $ Object "001" "11" ["01", "01", "01", "01", "01", "01", "01", "01"]
+                 , LineObject $ Object "001" "12" ["00", "02", "00", "02"]
+                 , LineObject $ Object "001" "13" ["03", "00", "00", "00", "03", "03", "00", "00"] ])
 
       -- expected
       let chan = toChannel 9
