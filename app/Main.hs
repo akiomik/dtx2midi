@@ -22,7 +22,7 @@ opts = Opts
         ( long "output"
        <> short 'o'
        <> metavar "MIDIFILE"
-       <> help "An output .midi file " )
+       <> help "An output .midi file" )
 
 run :: Opts -> IO ()
 run (Opts input output) = do
