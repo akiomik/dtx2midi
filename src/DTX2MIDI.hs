@@ -25,9 +25,8 @@ import qualified Sound.MIDI.File.Event.Meta as MetaEvent
 import qualified Sound.MIDI.File.Event as MIDIEvent
 import qualified Sound.MIDI.File as MIDIFile
 import qualified Data.EventList.Relative.TimeBody as EventList
-import Data.EventList.Relative.MixedBody ((/.), (./), )
+import Data.EventList.Relative.MixedBody ((/.), (./))
 
-import Control.Monad (join)
 import Data.Function (on)
 import Data.List (partition, groupBy, (\\), sortBy)
 import Data.Maybe (maybeToList, listToMaybe)
