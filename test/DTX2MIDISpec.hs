@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module DTX2MIDI.DTX2MIDISpec where
+module DTX2MIDISpec where
 
 import Test.Hspec
 
