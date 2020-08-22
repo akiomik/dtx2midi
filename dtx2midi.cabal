@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 331dfd9bcfdc4c9f0195ea4ef4bfafcab7ac646d83b3bd2b6f3c48598b81219c
+-- hash: 44406c3e996a6d15322ca8b4811ecea0ab586c89c07eac58f88d068b2106d493
 
 name:           dtx2midi
 version:        0.2.1.0
@@ -28,9 +28,9 @@ source-repository head
 
 library
   exposed-modules:
-      DTX
-      DTX.Parser
       DTX2MIDI
+      DTX2MIDI.DTX
+      DTX2MIDI.DTX.Parser
   other-modules:
       Paths_dtx2midi
   hs-source-dirs:
@@ -74,7 +74,7 @@ test-suite dtx2midi-test
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   other-modules:
-      DTX.ParserSpec
+      DTX2MIDI.DTX.ParserSpec
       DTX2MIDI.DTX2MIDISpec
       Paths_dtx2midi
   hs-source-dirs:

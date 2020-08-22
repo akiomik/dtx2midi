@@ -1,14 +1,14 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module DTX.ParserSpec where
+module DTX2MIDI.DTX.ParserSpec where
 
 import Test.Hspec
 import Test.Hspec.Attoparsec
 
 import Data.Text
 
-import DTX
-import DTX.Parser
+import DTX2MIDI.DTX
+import DTX2MIDI.DTX.Parser
 
 spec :: Spec
 spec = do

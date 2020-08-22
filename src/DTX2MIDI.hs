@@ -31,8 +31,8 @@ import Data.Function (on)
 import Data.List (partition, groupBy, (\\), sortBy)
 import Data.Maybe (maybeToList, listToMaybe)
 import qualified Data.Text as T
-import DTX
-import DTX.Parser
+import DTX2MIDI.DTX
+import DTX2MIDI.DTX.Parser
 import Prelude hiding (readFile)
 
 type DTX = [Line]

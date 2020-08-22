@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module DTX.Parser
+module DTX2MIDI.DTX.Parser
     (
         readFile
       , parseText
@@ -26,7 +26,7 @@ import Data.Conduit.Text (decode, utf8)
 import Data.Text (Text, pack, singleton)
 import Prelude hiding (take, readFile)
 
-import DTX
+import DTX2MIDI.DTX
 
 spaceWithoutEOL :: Parser Char
 spaceWithoutEOL =

@@ -12,9 +12,9 @@ import Sound.MIDI.Message.Channel.Voice (T(NoteOn, NoteOff, ProgramChange), toVe
 import qualified Data.EventList.Relative.TimeBody as EventList
 import Data.EventList.Relative.MixedBody ((/.), (./))
 
-import DTX
-import DTX.Parser
 import DTX2MIDI
+import DTX2MIDI.DTX
+import DTX2MIDI.DTX.Parser
 
 spec :: Spec
 spec = do

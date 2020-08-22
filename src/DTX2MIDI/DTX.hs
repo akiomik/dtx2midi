@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module DTX
+module DTX2MIDI.DTX
     (
         Line(..)
       , Object(..)
