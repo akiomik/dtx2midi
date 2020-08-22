@@ -1,46 +1,46 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 module DTX2MIDI.DTX
-    (
-        Line(..)
-      , Object(..)
-      , Header(..)
-      , Comment(..)
-      , Note(..)
-      , object
-      , header
-      , comment
-      , isHeader
-      , isComment
-      , isObject
-    ) where
+  ( Line (..),
+    Object (..),
+    Header (..),
+    Comment (..),
+    Note (..),
+    object,
+    header,
+    comment,
+    isHeader,
+    isComment,
+    isObject,
+  )
+where
 
 import Data.Text (Text, pack, singleton)
 
 type Channel = Text
+
 type Comment = Text
+
 type Note = Text
 
 data Header = Header
-    {
-        headerKey :: Text
-      , headerChannel :: Channel
-      , headerValue :: Text
-    }
+  { headerKey :: Text,
+    headerChannel :: Channel,
+    headerValue :: Text
+  }
   deriving (Show, Eq)
 
 data Object = Object
-    {
-        objectKey :: Text
-      , objectChannel :: Channel
-      , objectValue :: [Note]
-    }
+  { objectKey :: Text,
+    objectChannel :: Channel,
+    objectValue :: [Note]
+  }
   deriving (Show, Eq)
 
-data Line =
-    LineHeader Header
-        | LineComment Comment
-        | LineObject Object
+data Line
+  = LineHeader Header
+  | LineComment Comment
+  | LineObject Object
   deriving (Show, Eq)
 
 header :: Line -> Maybe Header
