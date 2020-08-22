@@ -32,6 +32,7 @@ import Data.Function (on)
 import Data.List (partition, groupBy, (\\), sortBy)
 import Data.Maybe (maybeToList, listToMaybe)
 import qualified Data.Text as T
+import DTX
 import DTX.Parse
 import Prelude hiding (readFile)
 

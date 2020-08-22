@@ -7,6 +7,7 @@ import Test.Hspec.Attoparsec
 
 import Data.Text
 
+import DTX
 import DTX.Parse
 
 spec :: Spec

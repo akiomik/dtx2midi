@@ -4,17 +4,6 @@ module DTX.Parse
     (
         readFile
       , parseText
-      , Line(..)
-      , Object(..)
-      , Header(..)
-      , Comment(..)
-      , Note(..)
-      , object
-      , header
-      , comment
-      , isHeader
-      , isComment
-      , isObject
 
       -- for testing
       , parseHeaderLine
@@ -37,55 +26,7 @@ import Data.Conduit.Text (decode, utf8)
 import Data.Text (Text, pack, singleton)
 import Prelude hiding (take, readFile)
 
-type Channel = Text
-type Comment = Text
-type Note = Text
-
-data Header = Header
-    {
-        headerKey :: Text
-      , headerChannel :: Channel
-      , headerValue :: Text
-    }
-  deriving (Show, Eq)
-
-data Object = Object
-    {
-        objectKey :: Text
-      , objectChannel :: Channel
-      , objectValue :: [Note]
-    }
-  deriving (Show, Eq)
-
-data Line =
-    LineHeader Header
-        | LineComment Comment
-        | LineObject Object
-  deriving (Show, Eq)
-
-header :: Line -> Maybe Header
-header (LineHeader h) = Just h
-header _ = Nothing
-
-comment :: Line -> Maybe Comment
-comment (LineComment c) = Just c
-comment _ = Nothing
-
-object :: Line -> Maybe Object
-object (LineObject o) = Just o
-object _ = Nothing
-
-isHeader :: Line -> Bool
-isHeader (LineHeader _) = True
-isHeader _ = False
-
-isComment :: Line -> Bool
-isComment (LineComment _) = True
-isComment _ = False
-
-isObject :: Line -> Bool
-isObject (LineObject _) = True
-isObject _ = False
+import DTX
 
 spaceWithoutEOL :: Parser Char
 spaceWithoutEOL =
