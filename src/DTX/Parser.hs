@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module DTX.Parse
+module DTX.Parser
     (
         readFile
       , parseText

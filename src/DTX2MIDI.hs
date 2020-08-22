@@ -32,7 +32,7 @@ import Data.List (partition, groupBy, (\\), sortBy)
 import Data.Maybe (maybeToList, listToMaybe)
 import qualified Data.Text as T
 import DTX
-import DTX.Parse
+import DTX.Parser
 import Prelude hiding (readFile)
 
 type DTX = [Line]

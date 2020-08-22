@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module DTX.ParseSpec where
+module DTX.ParserSpec where
 
 import Test.Hspec
 import Test.Hspec.Attoparsec
@@ -8,7 +8,7 @@ import Test.Hspec.Attoparsec
 import Data.Text
 
 import DTX
-import DTX.Parse
+import DTX.Parser
 
 spec :: Spec
 spec = do

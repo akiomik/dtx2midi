@@ -13,7 +13,7 @@ import qualified Data.EventList.Relative.TimeBody as EventList
 import Data.EventList.Relative.MixedBody ((/.), (./))
 
 import DTX
-import DTX.Parse
+import DTX.Parser
 import DTX2MIDI
 
 spec :: Spec
