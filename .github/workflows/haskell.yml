@@ -28,6 +28,8 @@ jobs:
           ${{ runner.os }}-build-
           ${{ runner.os }}-
 
+    - name: Dependencies
+      run: sudo apt-get -y install libasound2-dev
     - name: Build
       run: stack build
     - name: Run tests

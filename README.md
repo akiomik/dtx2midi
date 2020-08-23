@@ -24,7 +24,10 @@ The binaries for linux and macOS can be downloaded from the [release page](https
 
 ## Build from source
 
-[stack](https://github.com/commercialhaskell/stack) is required.
+Requirements:
+
+- [stack](https://github.com/commercialhaskell/stack)
+- `libasound2-dev` (Linux only)
 
 ```bash
 git clone https://github.com/akiomik/dtx2midi.git
