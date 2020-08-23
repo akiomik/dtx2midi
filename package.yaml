@@ -21,13 +21,12 @@ homepage:            https://github.com/akiomik/dtx2midi
 
 dependencies:
 - base >= 4.7 && < 5
+- Euterpea
+- HCodecs
 - attoparsec
 - bytestring
 - conduit >= 1.0
 - conduit-extra
-- event-list
-- haskore
-- midi
 - resourcet
 - text
 

@@ -2,16 +2,11 @@
 
 module DTX2MIDISpec where
 
+import Codec.Midi (Midi (..))
+import qualified Codec.Midi as Midi
 import DTX2MIDI
 import DTX2MIDI.DTX
 import DTX2MIDI.DTX.Parser
-import Data.EventList.Relative.MixedBody ((./), (/.))
-import qualified Data.EventList.Relative.TimeBody as EventList
-import qualified Sound.MIDI.File as MIDIFile
-import Sound.MIDI.File.Event (T (MIDIEvent, MetaEvent))
-import Sound.MIDI.File.Event.Meta (T (SetTempo))
-import Sound.MIDI.Message.Channel (Body (Voice), Channel, T (Cons), toChannel)
-import Sound.MIDI.Message.Channel.Voice (T (NoteOff, NoteOn, ProgramChange), toPitch, toProgram, toVelocity)
 import Test.Hspec
 
 spec :: Spec
@@ -58,43 +53,48 @@ spec = do
             )
 
       -- expected
-      let chan = toChannel 9
-      let vel = toVelocity 64
-      let bd = toPitch 35
-      let sd = toPitch 38
-      let hh = toPitch 42
-      let events =
-            [ 0 /. MetaEvent (SetTempo 333333)
-                ./ 0 /. MIDIEvent (Cons chan (Voice (ProgramChange (toProgram 0))))
-                ./ 0 /. MIDIEvent (Cons chan (Voice (NoteOn bd vel)))
-                ./ 0 /. MIDIEvent (Cons chan (Voice (NoteOn hh vel)))
-                ./ 48 /. MIDIEvent (Cons chan (Voice (NoteOff bd vel)))
-                ./ 0 /. MIDIEvent (Cons chan (Voice (NoteOff hh vel)))
-                ./ 0 /. MIDIEvent (Cons chan (Voice (NoteOn hh vel)))
-                ./ 48 /. MIDIEvent (Cons chan (Voice (NoteOff hh vel)))
-                ./ 0 /. MIDIEvent (Cons chan (Voice (NoteOn sd vel)))
-                ./ 0 /. MIDIEvent (Cons chan (Voice (NoteOn hh vel)))
-                ./ 48 /. MIDIEvent (Cons chan (Voice (NoteOff hh vel)))
-                ./ 0 /. MIDIEvent (Cons chan (Voice (NoteOn hh vel)))
-                ./ 48 /. MIDIEvent (Cons chan (Voice (NoteOff sd vel)))
-                ./ 0 /. MIDIEvent (Cons chan (Voice (NoteOff hh vel)))
-                ./ 0 /. MIDIEvent (Cons chan (Voice (NoteOn bd vel)))
-                ./ 0 /. MIDIEvent (Cons chan (Voice (NoteOn hh vel)))
-                ./ 48 /. MIDIEvent (Cons chan (Voice (NoteOff bd vel)))
-                ./ 0 /. MIDIEvent (Cons chan (Voice (NoteOff hh vel)))
-                ./ 0 /. MIDIEvent (Cons chan (Voice (NoteOn bd vel)))
-                ./ 0 /. MIDIEvent (Cons chan (Voice (NoteOn hh vel)))
-                ./ 48 /. MIDIEvent (Cons chan (Voice (NoteOff bd vel)))
-                ./ 0 /. MIDIEvent (Cons chan (Voice (NoteOff hh vel)))
-                ./ 0 /. MIDIEvent (Cons chan (Voice (NoteOn sd vel)))
-                ./ 0 /. MIDIEvent (Cons chan (Voice (NoteOn hh vel)))
-                ./ 48 /. MIDIEvent (Cons chan (Voice (NoteOff hh vel)))
-                ./ 0 /. MIDIEvent (Cons chan (Voice (NoteOn hh vel)))
-                ./ 48 /. MIDIEvent (Cons chan (Voice (NoteOff sd vel)))
-                ./ 0 /. MIDIEvent (Cons chan (Voice (NoteOff hh vel)))
-                ./ EventList.empty
+      let chan = 9
+      let vel = 127
+      let bd = 35
+      let sd = 38
+      let hh = 42
+      let tracks =
+            [ [ (0, Midi.ProgramChange {Midi.channel = chan, Midi.preset = 0}),
+                (0, Midi.TempoChange 333333),
+                (0, Midi.NoteOn {Midi.channel = chan, Midi.key = bd, Midi.velocity = vel}),
+                (0, Midi.NoteOn {Midi.channel = chan, Midi.key = hh, Midi.velocity = vel}),
+                (48, Midi.NoteOff {Midi.channel = chan, Midi.key = bd, Midi.velocity = vel}),
+                (0, Midi.NoteOff {Midi.channel = chan, Midi.key = hh, Midi.velocity = vel}),
+                (0, Midi.NoteOn {Midi.channel = chan, Midi.key = hh, Midi.velocity = vel}),
+                (48, Midi.NoteOff {Midi.channel = chan, Midi.key = hh, Midi.velocity = vel}),
+                (0, Midi.NoteOn {Midi.channel = chan, Midi.key = sd, Midi.velocity = vel}),
+                (0, Midi.NoteOn {Midi.channel = chan, Midi.key = hh, Midi.velocity = vel}),
+                (48, Midi.NoteOff {Midi.channel = chan, Midi.key = hh, Midi.velocity = vel}),
+                (0, Midi.NoteOn {Midi.channel = chan, Midi.key = hh, Midi.velocity = vel}),
+                (48, Midi.NoteOff {Midi.channel = chan, Midi.key = sd, Midi.velocity = vel}),
+                (0, Midi.NoteOff {Midi.channel = chan, Midi.key = hh, Midi.velocity = vel}),
+                (0, Midi.NoteOn {Midi.channel = chan, Midi.key = bd, Midi.velocity = vel}),
+                (0, Midi.NoteOn {Midi.channel = chan, Midi.key = hh, Midi.velocity = vel}),
+                (48, Midi.NoteOff {Midi.channel = chan, Midi.key = bd, Midi.velocity = vel}),
+                (0, Midi.NoteOff {Midi.channel = chan, Midi.key = hh, Midi.velocity = vel}),
+                (0, Midi.NoteOn {Midi.channel = chan, Midi.key = bd, Midi.velocity = vel}),
+                (0, Midi.NoteOn {Midi.channel = chan, Midi.key = hh, Midi.velocity = vel}),
+                (48, Midi.NoteOff {Midi.channel = chan, Midi.key = bd, Midi.velocity = vel}),
+                (0, Midi.NoteOff {Midi.channel = chan, Midi.key = hh, Midi.velocity = vel}),
+                (0, Midi.NoteOn {Midi.channel = chan, Midi.key = sd, Midi.velocity = vel}),
+                (0, Midi.NoteOn {Midi.channel = chan, Midi.key = hh, Midi.velocity = vel}),
+                (48, Midi.NoteOff {Midi.channel = chan, Midi.key = hh, Midi.velocity = vel}),
+                (0, Midi.NoteOn {Midi.channel = chan, Midi.key = hh, Midi.velocity = vel}),
+                (48, Midi.NoteOff {Midi.channel = chan, Midi.key = sd, Midi.velocity = vel}),
+                (0, Midi.NoteOff {Midi.channel = chan, Midi.key = hh, Midi.velocity = vel})
+              ]
             ]
-      let expected = MIDIFile.Cons MIDIFile.Parallel (MIDIFile.Ticks 96) events
+      let expected =
+            Midi
+              { Midi.fileType = Midi.SingleTrack,
+                Midi.timeDiv = Midi.TicksPerBeat 96,
+                Midi.tracks = tracks
+              }
 
       midi <- toMIDI dtx
       midi `shouldBe` (expected)
@@ -109,43 +109,48 @@ spec = do
             )
 
       -- expected
-      let chan = toChannel 9
-      let vel = toVelocity 64
-      let bd = toPitch 35
-      let sd = toPitch 38
-      let hh = toPitch 42
-      let events =
-            [ 0 /. MetaEvent (SetTempo 500000)
-                ./ 0 /. MIDIEvent (Cons chan (Voice (ProgramChange (toProgram 0))))
-                ./ 0 /. MIDIEvent (Cons chan (Voice (NoteOn bd vel)))
-                ./ 0 /. MIDIEvent (Cons chan (Voice (NoteOn hh vel)))
-                ./ 96 /. MIDIEvent (Cons chan (Voice (NoteOff bd vel)))
-                ./ 0 /. MIDIEvent (Cons chan (Voice (NoteOff hh vel)))
-                ./ 0 /. MIDIEvent (Cons chan (Voice (NoteOn hh vel)))
-                ./ 96 /. MIDIEvent (Cons chan (Voice (NoteOff hh vel)))
-                ./ 0 /. MIDIEvent (Cons chan (Voice (NoteOn sd vel)))
-                ./ 0 /. MIDIEvent (Cons chan (Voice (NoteOn hh vel)))
-                ./ 96 /. MIDIEvent (Cons chan (Voice (NoteOff hh vel)))
-                ./ 0 /. MIDIEvent (Cons chan (Voice (NoteOn hh vel)))
-                ./ 96 /. MIDIEvent (Cons chan (Voice (NoteOff sd vel)))
-                ./ 0 /. MIDIEvent (Cons chan (Voice (NoteOff hh vel)))
-                ./ 0 /. MIDIEvent (Cons chan (Voice (NoteOn bd vel)))
-                ./ 0 /. MIDIEvent (Cons chan (Voice (NoteOn hh vel)))
-                ./ 96 /. MIDIEvent (Cons chan (Voice (NoteOff bd vel)))
-                ./ 0 /. MIDIEvent (Cons chan (Voice (NoteOff hh vel)))
-                ./ 0 /. MIDIEvent (Cons chan (Voice (NoteOn bd vel)))
-                ./ 0 /. MIDIEvent (Cons chan (Voice (NoteOn hh vel)))
-                ./ 96 /. MIDIEvent (Cons chan (Voice (NoteOff bd vel)))
-                ./ 0 /. MIDIEvent (Cons chan (Voice (NoteOff hh vel)))
-                ./ 0 /. MIDIEvent (Cons chan (Voice (NoteOn sd vel)))
-                ./ 0 /. MIDIEvent (Cons chan (Voice (NoteOn hh vel)))
-                ./ 96 /. MIDIEvent (Cons chan (Voice (NoteOff hh vel)))
-                ./ 0 /. MIDIEvent (Cons chan (Voice (NoteOn hh vel)))
-                ./ 96 /. MIDIEvent (Cons chan (Voice (NoteOff sd vel)))
-                ./ 0 /. MIDIEvent (Cons chan (Voice (NoteOff hh vel)))
-                ./ EventList.empty
+      let chan = 9
+      let vel = 127
+      let bd = 35
+      let sd = 38
+      let hh = 42
+      let tracks =
+            [ [ (0, Midi.ProgramChange {Midi.channel = chan, Midi.preset = 0}),
+                (0, Midi.TempoChange 500000),
+                (0, Midi.NoteOn {Midi.channel = chan, Midi.key = bd, Midi.velocity = vel}),
+                (0, Midi.NoteOn {Midi.channel = chan, Midi.key = hh, Midi.velocity = vel}),
+                (48, Midi.NoteOff {Midi.channel = chan, Midi.key = bd, Midi.velocity = vel}),
+                (0, Midi.NoteOff {Midi.channel = chan, Midi.key = hh, Midi.velocity = vel}),
+                (0, Midi.NoteOn {Midi.channel = chan, Midi.key = hh, Midi.velocity = vel}),
+                (48, Midi.NoteOff {Midi.channel = chan, Midi.key = hh, Midi.velocity = vel}),
+                (0, Midi.NoteOn {Midi.channel = chan, Midi.key = sd, Midi.velocity = vel}),
+                (0, Midi.NoteOn {Midi.channel = chan, Midi.key = hh, Midi.velocity = vel}),
+                (48, Midi.NoteOff {Midi.channel = chan, Midi.key = hh, Midi.velocity = vel}),
+                (0, Midi.NoteOn {Midi.channel = chan, Midi.key = hh, Midi.velocity = vel}),
+                (48, Midi.NoteOff {Midi.channel = chan, Midi.key = sd, Midi.velocity = vel}),
+                (0, Midi.NoteOff {Midi.channel = chan, Midi.key = hh, Midi.velocity = vel}),
+                (0, Midi.NoteOn {Midi.channel = chan, Midi.key = bd, Midi.velocity = vel}),
+                (0, Midi.NoteOn {Midi.channel = chan, Midi.key = hh, Midi.velocity = vel}),
+                (48, Midi.NoteOff {Midi.channel = chan, Midi.key = bd, Midi.velocity = vel}),
+                (0, Midi.NoteOff {Midi.channel = chan, Midi.key = hh, Midi.velocity = vel}),
+                (0, Midi.NoteOn {Midi.channel = chan, Midi.key = bd, Midi.velocity = vel}),
+                (0, Midi.NoteOn {Midi.channel = chan, Midi.key = hh, Midi.velocity = vel}),
+                (48, Midi.NoteOff {Midi.channel = chan, Midi.key = bd, Midi.velocity = vel}),
+                (0, Midi.NoteOff {Midi.channel = chan, Midi.key = hh, Midi.velocity = vel}),
+                (0, Midi.NoteOn {Midi.channel = chan, Midi.key = sd, Midi.velocity = vel}),
+                (0, Midi.NoteOn {Midi.channel = chan, Midi.key = hh, Midi.velocity = vel}),
+                (48, Midi.NoteOff {Midi.channel = chan, Midi.key = hh, Midi.velocity = vel}),
+                (0, Midi.NoteOn {Midi.channel = chan, Midi.key = hh, Midi.velocity = vel}),
+                (48, Midi.NoteOff {Midi.channel = chan, Midi.key = sd, Midi.velocity = vel}),
+                (0, Midi.NoteOff {Midi.channel = chan, Midi.key = hh, Midi.velocity = vel})
+              ]
             ]
-      let expected = MIDIFile.Cons MIDIFile.Parallel (MIDIFile.Ticks 96) events
+      let expected =
+            Midi
+              { Midi.fileType = Midi.SingleTrack,
+                Midi.timeDiv = Midi.TicksPerBeat 96,
+                Midi.tracks = tracks
+              }
 
       midi <- toMIDI dtx
       midi `shouldBe` (expected)
