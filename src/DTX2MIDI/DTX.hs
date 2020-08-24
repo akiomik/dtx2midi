@@ -1,7 +1,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 module DTX2MIDI.DTX
-  ( Line (..),
+  ( DTX (..),
+    Line (..),
     Object (..),
     Header (..),
     Comment (..),
@@ -13,10 +14,17 @@ module DTX2MIDI.DTX
     isHeader,
     isComment,
     isObject,
+    isBPM,
+    headers,
+    objects,
+    bpm,
   )
 where
 
-import Data.Text (Text, pack, singleton)
+import Data.Maybe (listToMaybe, maybeToList)
+import Data.Text (Text, pack, singleton, unpack)
+
+type DTX = [Line]
 
 type Key = Text
 
@@ -69,3 +77,20 @@ isComment _ = False
 isObject :: Line -> Bool
 isObject (LineObject _) = True
 isObject _ = False
+
+isBPM :: Header -> Bool
+isBPM (Header "BPM" _ _) = True
+isBPM _ = False
+
+headers :: DTX -> [Header]
+headers dtx = (maybeToList . header) =<< dtx
+
+objects :: DTX -> [Object]
+objects dtx = (maybeToList . object) =<< dtx
+
+bpm :: DTX -> Maybe Double
+bpm dtx =
+  fmap readValue $ listToMaybe $ filter isBPM $ headers dtx
+  where
+    readValue :: Header -> Double
+    readValue = read . unpack . headerValue

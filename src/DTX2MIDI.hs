@@ -5,7 +5,6 @@ module DTX2MIDI
     toFile,
     toMIDI,
     -- for testing
-    bpm,
     keyCompletion,
     objectCompletion,
     toTempo,
@@ -14,6 +13,7 @@ where
 
 import Codec.Midi (Midi (..))
 import qualified Codec.Midi as Midi
+import DTX2MIDI.DTX (DTX (..))
 import qualified DTX2MIDI.DTX as DTX
 import DTX2MIDI.DTX.Parser
 import Data.Function (on)
@@ -27,8 +27,6 @@ import Euterpea.IO.MIDI.ToMidi (toMidi)
 import Euterpea.Music (Music (..))
 import qualified Euterpea.Music as Music
 import Prelude hiding (readFile)
-
-type DTX = [DTX.Line]
 
 type DrumSound = Music.Dur -> Music Music.Pitch
 
@@ -55,16 +53,6 @@ updateFirstTempo tempo midi =
     update (0, Midi.TempoChange 500000) = (0, Midi.TempoChange tempo)
     update t = t
 
--- | BPMを取得
-bpm :: DTX -> Maybe Double
-bpm dtx =
-  fmap readValue $ listToMaybe $ filter isBPM headers
-  where
-    headers = (maybeToList . DTX.header) =<< dtx
-    readValue :: DTX.Header -> Double
-    readValue = read . T.unpack . DTX.headerValue
-    isBPM = (== "BPM") . DTX.headerKey
-
 -- bpm (beat/minute) を tempo (μs/beat) に変換する
 toTempo :: Double -> Midi.Tempo
 toTempo bpm = round $ 1000000 / (bpm / 60)
@@ -73,17 +61,17 @@ toTempo bpm = round $ 1000000 / (bpm / 60)
 --   NOTE: changeTempoは音価が変わるだけでBPM自体は変化しないため、
 --         global tempo (bpm 120) を無視して上書き
 toMIDI :: DTX -> IO (Midi)
-toMIDI lines = do
+toMIDI dtx = do
   let group = groupBy sameKey filteredObjects
   let midi = Music.line1 $ map toMeasure group
-  return $ case bpm lines of
+  return $ case DTX.bpm dtx of
     Nothing -> toMidi $ perform midi
     Just b -> updateFirstTempo (toTempo b) $ toMidi $ perform midi
   where
     toNote o = valueToMIDINote (chanToDrum $ DTX.objectChannel o) $ DTX.objectValue o
     toMeasure = Music.chord1 . map toNote
     sameKey = (==) `on` DTX.objectKey
-    objects = (maybeToList . DTX.object) =<< lines
+    objects = DTX.objects dtx
     keys = map DTX.objectKey objects
     completion = objectCompletion keys
     fullObjects = sortBy (compare `on` DTX.objectKey) $ objects ++ completion

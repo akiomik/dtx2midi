@@ -11,18 +11,6 @@ import Test.Hspec
 
 spec :: Spec
 spec = do
-  describe "bpm" $ do
-    it "returns bpm when BPM is defined in the headers" $ do
-      let dtx =
-            [ LineHeader $ Header "TITLE" "" "foo",
-              LineHeader $ Header "BPM" "" "100"
-            ]
-      bpm dtx `shouldBe` (Just 100)
-
-    it "returns Nothing when BPM is not defined in the headers" $ do
-      let dtx = [LineHeader $ Header "TITLE" "" "foo"]
-      bpm dtx `shouldBe` (Nothing)
-
   describe "keyCompletion" $ do
     it "returns filled measure ids" $ do
       keyCompletion ["001", "005"] `shouldBe` (["001", "002", "003", "004", "005"])
