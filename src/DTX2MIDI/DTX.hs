@@ -4,10 +4,12 @@ module DTX2MIDI.DTX
   ( DTX (..),
     Line (..),
     Object (..),
+    ObjectValue (..),
     Header (..),
+    Key (..),
+    Channel (..),
     Comment (..),
     Note (..),
-    Key (..),
     object,
     header,
     comment,
@@ -15,6 +17,7 @@ module DTX2MIDI.DTX
     isComment,
     isObject,
     isBPM,
+    isNoteObject,
     headers,
     objects,
     bpm,
@@ -41,10 +44,26 @@ data Header = Header
   }
   deriving (Show, Eq)
 
+-- TODO: Add support for tempo change event and measure length ratio change event
+data ObjectValue
+  = HiHatClose [Note]
+  | Snare [Note]
+  | BassDrum [Note]
+  | HighTom [Note]
+  | LowTom [Note]
+  | Cymbal [Note]
+  | FloorTom [Note]
+  | HiHatOpen [Note]
+  | RideCymbal [Note]
+  | LeftCymbal [Note]
+  | LeftPedal [Note]
+  | LeftBassDrum [Note]
+  | UnsupportedEvent Channel Text
+  deriving (Show, Eq)
+
 data Object = Object
   { objectKey :: Key,
-    objectChannel :: Channel,
-    objectValue :: [Note]
+    objectValue :: ObjectValue
   }
   deriving (Show, Eq)
 
@@ -81,6 +100,10 @@ isObject _ = False
 isBPM :: Header -> Bool
 isBPM (Header "BPM" _ _) = True
 isBPM _ = False
+
+isNoteObject :: Object -> Bool
+isNoteObject (Object _ (UnsupportedEvent _ _)) = False
+isNoteObject _ = True
 
 headers :: DTX -> [Header]
 headers dtx = (maybeToList . header) =<< dtx

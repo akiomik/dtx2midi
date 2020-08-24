@@ -89,12 +89,34 @@ parseObjectKey = do
   n_ <- count 2 digit
   return $ pack $ n1 : n_
 
-parseObjectValue :: Parser [Note]
-parseObjectValue = do
+parseNoteObjectValue :: Parser [Note]
+parseNoteObjectValue = do
   (filter (/= ("_" :: Text))) <$> many (parsePlaceHolder <|> parseNote)
   where
     parseNote = pack <$> (count 2 $ satisfy $ inClass "0-9A-Z")
     parsePlaceHolder = singleton <$> char '_'
+
+parseUnsupportedEventObjectValue :: Parser Text
+parseUnsupportedEventObjectValue = takeTill isEndOfLine
+
+isNoteEvent :: Channel -> Bool
+isNoteEvent chan
+  | chan `elem` ["11", "12", "13", "14", "15", "16", "17", "18", "19", "1A", "1B", "1C"] = True
+  | otherwise = False
+
+noteEventToObjectValue :: Channel -> [Note] -> ObjectValue
+noteEventToObjectValue "11" = HiHatClose
+noteEventToObjectValue "12" = Snare
+noteEventToObjectValue "13" = BassDrum
+noteEventToObjectValue "14" = HighTom
+noteEventToObjectValue "15" = LowTom
+noteEventToObjectValue "16" = Cymbal
+noteEventToObjectValue "17" = FloorTom
+noteEventToObjectValue "18" = HiHatOpen
+noteEventToObjectValue "19" = RideCymbal
+noteEventToObjectValue "1A" = LeftCymbal
+noteEventToObjectValue "1B" = LeftPedal
+noteEventToObjectValue "1C" = LeftBassDrum
 
 parseObject :: Parser Object
 parseObject = do
@@ -103,8 +125,13 @@ parseObject = do
   chan <- parseChannel
   option ':' $ char ':'
   skipMany spaceWithoutEOL
-  value <- parseObjectValue
-  Object <$> pure key <*> pure chan <*> pure value
+  if isNoteEvent chan
+    then do
+      value <- parseNoteObjectValue
+      Object <$> pure key <*> pure (noteEventToObjectValue chan value)
+    else do
+      value <- parseUnsupportedEventObjectValue
+      Object <$> pure key <*> pure (UnsupportedEvent chan value)
 
 parseObjectLine :: Parser Object
 parseObjectLine = parseObject <* endOfLine

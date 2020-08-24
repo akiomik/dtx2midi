@@ -18,7 +18,7 @@ import qualified DTX2MIDI.DTX as DTX
 import DTX2MIDI.DTX.Parser
 import Data.Function (on)
 import Data.List (groupBy, sortBy, (\\))
-import Data.Maybe (listToMaybe, maybeToList)
+import Data.Maybe (mapMaybe)
 import Data.Ratio ((%))
 import qualified Data.Text as T
 import Euterpea.IO.MIDI.ExportMidiFile (exportMidiFile)
@@ -68,48 +68,48 @@ toMIDI dtx = do
     Nothing -> toMidi $ perform midi
     Just b -> updateFirstTempo (toTempo b) $ toMidi $ perform midi
   where
-    toNote o = valueToMIDINote (chanToDrum $ DTX.objectChannel o) $ DTX.objectValue o
-    toMeasure = Music.chord1 . map toNote
+    toNotes o = objectValueToMIDINotes $ DTX.objectValue o
+    toMeasure = Music.chord1 . mapMaybe toNotes
     sameKey = (==) `on` DTX.objectKey
     objects = DTX.objects dtx
-    keys = map DTX.objectKey objects
+    keys = map DTX.objectKey $ filter DTX.isNoteObject objects
     completion = objectCompletion keys
     fullObjects = sortBy (compare `on` DTX.objectKey) $ objects ++ completion
     filteredObjects = filter (\o -> DTX.objectKey o /= "000") fullObjects -- BGM用の小節000は無視
 
--- | チャンネルからドラム音源へマッピング
+-- | DTXのオブジェクトからドラム音源へマッピング
 -- TODO: ボリューム等の対応
 -- TODO: BPMの変更などのコントロール系の処理
-chanToDrum :: T.Text -> DrumSound
-chanToDrum "11" d = Music.perc Music.ClosedHiHat d
-chanToDrum "12" d = Music.perc Music.AcousticSnare d
-chanToDrum "13" d = Music.perc Music.AcousticBassDrum d
-chanToDrum "14" d = Music.perc Music.HighTom d
-chanToDrum "15" d = Music.perc Music.LowTom d
-chanToDrum "16" d = Music.perc Music.CrashCymbal1 d
-chanToDrum "17" d = Music.perc Music.LowFloorTom d
-chanToDrum "18" d = Music.perc Music.OpenHiHat d
-chanToDrum "19" d = Music.perc Music.RideCymbal1 d
-chanToDrum "1A" d = Music.perc Music.CrashCymbal2 d
-chanToDrum "1B" d = Music.perc Music.PedalHiHat d -- ペダル？
-chanToDrum "1C" d = Music.perc Music.AcousticBassDrum d -- ツインペダル？
-chanToDrum _ d = Music.rest d
+objectValueToMIDINotes :: DTX.ObjectValue -> Maybe (Music Music.Pitch)
+objectValueToMIDINotes (DTX.HiHatClose notes) = Just $ dtxNotesToMIDINotes (Music.perc Music.ClosedHiHat) notes
+objectValueToMIDINotes (DTX.Snare notes) = Just $ dtxNotesToMIDINotes (Music.perc Music.AcousticSnare) notes
+objectValueToMIDINotes (DTX.BassDrum notes) = Just $ dtxNotesToMIDINotes (Music.perc Music.AcousticBassDrum) notes
+objectValueToMIDINotes (DTX.HighTom notes) = Just $ dtxNotesToMIDINotes (Music.perc Music.HighTom) notes
+objectValueToMIDINotes (DTX.LowTom notes) = Just $ dtxNotesToMIDINotes (Music.perc Music.LowTom) notes
+objectValueToMIDINotes (DTX.Cymbal notes) = Just $ dtxNotesToMIDINotes (Music.perc Music.CrashCymbal1) notes
+objectValueToMIDINotes (DTX.FloorTom notes) = Just $ dtxNotesToMIDINotes (Music.perc Music.LowFloorTom) notes
+objectValueToMIDINotes (DTX.HiHatOpen notes) = Just $ dtxNotesToMIDINotes (Music.perc Music.OpenHiHat) notes
+objectValueToMIDINotes (DTX.RideCymbal notes) = Just $ dtxNotesToMIDINotes (Music.perc Music.RideCymbal1) notes
+objectValueToMIDINotes (DTX.LeftCymbal notes) = Just $ dtxNotesToMIDINotes (Music.perc Music.CrashCymbal2) notes
+objectValueToMIDINotes (DTX.LeftPedal notes) = Just $ dtxNotesToMIDINotes (Music.perc Music.PedalHiHat) notes
+objectValueToMIDINotes (DTX.LeftBassDrum notes) = Just $ dtxNotesToMIDINotes (Music.perc Music.AcousticBassDrum) notes
+objectValueToMIDINotes _ = Nothing
 
--- | ドラム音源 drum と オブジェクト値 notes をmidiデータに変換する
--- TODO: 変拍子対応
-valueToMIDINote :: DrumSound -> [DTX.Note] -> Music Music.Pitch
-valueToMIDINote drum notes =
-  Music.line $ map toMIDINote notes
+dtxNotesToMIDINotes :: DrumSound -> [DTX.Note] -> Music Music.Pitch
+dtxNotesToMIDINotes drum notes =
+  Music.line $ map (\note -> dtxNoteToMIDINote drum note dur) notes
   where
-    len = toInteger $ length notes
-    d = 1 % len
-    toMIDINote "00" = Music.rest d
-    toMIDINote _ = drum d
+    dur = toDur notes
+    toDur notes = 1 % (toInteger $ length notes)
+
+dtxNoteToMIDINote :: DrumSound -> DTX.Note -> Music.Dur -> Music Music.Pitch
+dtxNoteToMIDINote _ "00" dur = Music.rest dur
+dtxNoteToMIDINote drum _ dur = drum dur
 
 -- | 疎になっている小節のオブジェクトを休符で補完する
 objectCompletion :: [DTX.Key] -> [DTX.Object]
 objectCompletion keys =
-  map (\key -> DTX.Object key "11" ["00"]) $ keyCompletion keys \\ keys
+  map (\key -> DTX.Object key (DTX.HiHatClose ["00"])) $ keyCompletion keys \\ keys
 
 -- | 疎になっている小節のキーを補完する
 keyCompletion :: [DTX.Key] -> [DTX.Key]

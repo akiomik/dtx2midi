@@ -13,9 +13,9 @@ spec = do
             [ LineHeader $ Header "TITLE" "" "foo",
               LineHeader $ Header "BPM" "" "100",
               LineComment "",
-              LineObject $ Object "001" "11" ["01", "01", "01", "01", "01", "01", "01", "01"],
-              LineObject $ Object "001" "12" ["00", "02", "00", "02"],
-              LineObject $ Object "001" "13" ["03", "00", "00", "00", "03", "03", "00", "00"]
+              LineObject $ Object "001" $ HiHatClose ["01", "01", "01", "01", "01", "01", "01", "01"],
+              LineObject $ Object "001" $ Snare ["00", "02", "00", "02"],
+              LineObject $ Object "001" $ BassDrum ["03", "00", "00", "00", "03", "03", "00", "00"]
             ]
       headers dtx `shouldBe` ([Header "TITLE" "" "foo", Header "BPM" "" "100"])
 
@@ -25,14 +25,14 @@ spec = do
             [ LineHeader $ Header "TITLE" "" "foo",
               LineHeader $ Header "BPM" "" "100",
               LineComment "",
-              LineObject $ Object "001" "11" ["01", "01", "01", "01", "01", "01", "01", "01"],
-              LineObject $ Object "001" "12" ["00", "02", "00", "02"],
-              LineObject $ Object "001" "13" ["03", "00", "00", "00", "03", "03", "00", "00"]
+              LineObject $ Object "001" $ HiHatClose ["01", "01", "01", "01", "01", "01", "01", "01"],
+              LineObject $ Object "001" $ Snare ["00", "02", "00", "02"],
+              LineObject $ Object "001" $ BassDrum ["03", "00", "00", "00", "03", "03", "00", "00"]
             ]
       let expected =
-            [ Object "001" "11" ["01", "01", "01", "01", "01", "01", "01", "01"],
-              Object "001" "12" ["00", "02", "00", "02"],
-              Object "001" "13" ["03", "00", "00", "00", "03", "03", "00", "00"]
+            [ Object "001" $ HiHatClose ["01", "01", "01", "01", "01", "01", "01", "01"],
+              Object "001" $ Snare ["00", "02", "00", "02"],
+              Object "001" $ BassDrum ["03", "00", "00", "00", "03", "03", "00", "00"]
             ]
       objects dtx `shouldBe` (expected)
 
