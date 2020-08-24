@@ -14,7 +14,7 @@ where
 
 import Codec.Midi (Midi (..))
 import qualified Codec.Midi as Midi
-import DTX2MIDI.DTX
+import qualified DTX2MIDI.DTX as DTX
 import DTX2MIDI.DTX.Parser
 import Data.Function (on)
 import Data.List (groupBy, sortBy, (\\))
@@ -24,11 +24,11 @@ import qualified Data.Text as T
 import Euterpea.IO.MIDI.ExportMidiFile (exportMidiFile)
 import Euterpea.IO.MIDI.MEvent (perform)
 import Euterpea.IO.MIDI.ToMidi (toMidi)
-import Euterpea.Music (Music(..))
+import Euterpea.Music (Music (..))
 import qualified Euterpea.Music as Music
 import Prelude hiding (readFile)
 
-type DTX = [Line]
+type DTX = [DTX.Line]
 
 type DrumSound = Music.Dur -> Music Music.Pitch
 
@@ -60,10 +60,10 @@ bpm :: DTX -> Maybe Double
 bpm dtx =
   fmap readValue $ listToMaybe $ filter isBPM headers
   where
-    headers = (maybeToList . header) =<< dtx
-    readValue :: Header -> Double
-    readValue = read . T.unpack . headerValue
-    isBPM = (== "BPM") . headerKey
+    headers = (maybeToList . DTX.header) =<< dtx
+    readValue :: DTX.Header -> Double
+    readValue = read . T.unpack . DTX.headerValue
+    isBPM = (== "BPM") . DTX.headerKey
 
 -- bpm (beat/minute) を tempo (μs/beat) に変換する
 toTempo :: Double -> Midi.Tempo
@@ -80,14 +80,14 @@ toMIDI lines = do
     Nothing -> toMidi $ perform midi
     Just b -> updateFirstTempo (toTempo b) $ toMidi $ perform midi
   where
-    toNote o = valueToMIDINote (chanToDrum $ objectChannel o) $ objectValue o
+    toNote o = valueToMIDINote (chanToDrum $ DTX.objectChannel o) $ DTX.objectValue o
     toMeasure = Music.chord1 . map toNote
-    sameKey = (==) `on` objectKey
-    objects = (maybeToList . object) =<< lines
-    keys = map objectKey objects
+    sameKey = (==) `on` DTX.objectKey
+    objects = (maybeToList . DTX.object) =<< lines
+    keys = map DTX.objectKey objects
     completion = objectCompletion keys
-    fullObjects = sortBy (compare `on` objectKey) $ objects ++ completion
-    filteredObjects = filter (\o -> objectKey o /= "000") fullObjects -- BGM用の小節000は無視
+    fullObjects = sortBy (compare `on` DTX.objectKey) $ objects ++ completion
+    filteredObjects = filter (\o -> DTX.objectKey o /= "000") fullObjects -- BGM用の小節000は無視
 
 -- | チャンネルからドラム音源へマッピング
 -- TODO: ボリューム等の対応
@@ -109,7 +109,7 @@ chanToDrum _ d = Music.rest d
 
 -- | ドラム音源 drum と オブジェクト値 notes をmidiデータに変換する
 -- TODO: 変拍子対応
-valueToMIDINote :: DrumSound -> [Note] -> Music Music.Pitch
+valueToMIDINote :: DrumSound -> [DTX.Note] -> Music Music.Pitch
 valueToMIDINote drum notes =
   Music.line $ map toMIDINote notes
   where
@@ -119,12 +119,12 @@ valueToMIDINote drum notes =
     toMIDINote _ = drum d
 
 -- | 疎になっている小節のオブジェクトを休符で補完する
-objectCompletion :: [T.Text] -> [Object]
+objectCompletion :: [DTX.Key] -> [DTX.Object]
 objectCompletion keys =
-  map (\key -> Object key "11" ["00"]) $ keyCompletion keys \\ keys
+  map (\key -> DTX.Object key "11" ["00"]) $ keyCompletion keys \\ keys
 
 -- | 疎になっている小節のキーを補完する
-keyCompletion :: [T.Text] -> [T.Text]
+keyCompletion :: [DTX.Key] -> [DTX.Key]
 keyCompletion ts =
   map (T.pack . format) [1 .. ((read $ T.unpack $ last ts) :: Int)]
   where

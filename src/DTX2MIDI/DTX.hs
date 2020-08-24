@@ -6,6 +6,7 @@ module DTX2MIDI.DTX
     Header (..),
     Comment (..),
     Note (..),
+    Key (..),
     object,
     header,
     comment,
@@ -17,6 +18,8 @@ where
 
 import Data.Text (Text, pack, singleton)
 
+type Key = Text
+
 type Channel = Text
 
 type Comment = Text
@@ -24,14 +27,14 @@ type Comment = Text
 type Note = Text
 
 data Header = Header
-  { headerKey :: Text,
+  { headerKey :: Key,
     headerChannel :: Channel,
     headerValue :: Text
   }
   deriving (Show, Eq)
 
 data Object = Object
-  { objectKey :: Text,
+  { objectKey :: Key,
     objectChannel :: Channel,
     objectValue :: [Note]
   }

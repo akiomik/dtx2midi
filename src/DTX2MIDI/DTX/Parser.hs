@@ -32,7 +32,7 @@ spaceWithoutEOL =
   where
     isSpaceWithoutEOL c = (isSpace c) && (not $ isEndOfLine c)
 
-parseHeaderKey :: Parser Text
+parseHeaderKey :: Parser Key
 parseHeaderKey =
   string "TITLE"
     <|> string "ARTIST"
@@ -83,7 +83,7 @@ parseHeader = do
 parseHeaderLine :: Parser Header
 parseHeaderLine = parseHeader <* endOfLine
 
-parseObjectKey :: Parser Text
+parseObjectKey :: Parser Key
 parseObjectKey = do
   n1 <- satisfy $ inClass "0-9A-Z"
   n_ <- count 2 digit
