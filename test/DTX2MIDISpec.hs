@@ -24,7 +24,7 @@ spec = do
                      ]
                    )
 
-  describe "toMIDI" $ do
+  describe "dtxToMIDI" $ do
     it "returns midi with specified bpm when the header has a BPM" $ do
       -- input
       let dtx =
@@ -79,7 +79,7 @@ spec = do
                 Midi.tracks = tracks
               }
 
-      midi <- toMIDI dtx
+      midi <- dtxToMIDI dtx
       midi `shouldBe` (expected)
 
     it "returns midi with default bpm when the header has not a BPM" $ do
@@ -135,7 +135,7 @@ spec = do
                 Midi.tracks = tracks
               }
 
-      midi <- toMIDI dtx
+      midi <- dtxToMIDI dtx
       midi `shouldBe` (expected)
 
     it "returns midi with the missing measure completed by rests" $ do
@@ -179,7 +179,7 @@ spec = do
                 Midi.tracks = tracks
               }
 
-      midi <- toMIDI dtx
+      midi <- dtxToMIDI dtx
       midi `shouldBe` (expected)
 
     it "returns midi with the unsupported event measure completed by rests" $ do
@@ -224,5 +224,5 @@ spec = do
                 Midi.tracks = tracks
               }
 
-      midi <- toMIDI dtx
+      midi <- dtxToMIDI dtx
       midi `shouldBe` (expected)

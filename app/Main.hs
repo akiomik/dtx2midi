@@ -1,6 +1,6 @@
 module Main where
 
-import DTX2MIDI (fromFile, toFile)
+import DTX2MIDI (dtxToMIDI, fromDTXFile, toMIDIFile)
 import Data.Semigroup ((<>))
 import Data.Version (showVersion)
 import Options.Applicative
@@ -31,8 +31,9 @@ run :: Opts -> IO ()
 run (Opts input output) = do
   putStrLn $ "Input file: " ++ input
   putStrLn $ "Output file: " ++ output
-  midi <- fromFile input
-  toFile output midi
+  dtx <- fromDTXFile input
+  midi <- dtxToMIDI dtx
+  toMIDIFile output midi
   putStrLn "Complete!"
 
 version :: String

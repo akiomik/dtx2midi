@@ -1,9 +1,9 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 module DTX2MIDI
-  ( fromFile,
-    toFile,
-    toMIDI,
+  ( fromDTXFile,
+    toMIDIFile,
+    dtxToMIDI,
     -- for testing
     keyCompletion,
     objectCompletion,
@@ -29,15 +29,13 @@ import Prelude hiding (readFile)
 
 type DrumSound = Music.Dur -> Music Music.Pitch
 
--- | DTXファイルからMIDIデータへ変換
-fromFile :: FilePath -> IO (MIDI)
-fromFile fp = do
-  dtx <- readFile fp
-  toMIDI dtx
+-- | DTXファイルの読み込み
+fromDTXFile :: FilePath -> IO (DTX)
+fromDTXFile = readFile
 
 -- | MIDIデータをMIDIファイルとして保存
-toFile :: FilePath -> MIDI -> IO ()
-toFile = exportMidiFile
+toMIDIFile :: FilePath -> MIDI -> IO ()
+toMIDIFile = exportMidiFile
 
 musicToMIDI :: (Music.ToMusic1 a) => Music a -> MIDI
 musicToMIDI = toMidi . perform
@@ -45,8 +43,8 @@ musicToMIDI = toMidi . perform
 -- | DTXデータをMIDIデータに変換
 --   NOTE: changeTempoは音価が変わるだけでBPM自体は変化しないため、
 --         global tempo (bpm 120) を無視して上書き
-toMIDI :: DTX -> IO (MIDI)
-toMIDI dtx = do
+dtxToMIDI :: DTX -> IO (MIDI)
+dtxToMIDI dtx = do
   let group = groupBy sameKey filteredObjects
   let music = Music.line1 $ map toMeasure group
   return $ case DTX.bpm dtx of
