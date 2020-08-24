@@ -24,11 +24,6 @@ spec = do
                      ]
                    )
 
-  describe "toTempo" $ do
-    it "returns tempo which has a specified bpm" $ do
-      toTempo 120 `shouldBe` 500000
-      toTempo 140 `shouldBe` 428571
-
   describe "toMIDI" $ do
     it "returns midi with specified bpm when the header has a BPM" $ do
       -- input

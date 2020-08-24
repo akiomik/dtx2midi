@@ -7,15 +7,14 @@ module DTX2MIDI
     -- for testing
     keyCompletion,
     objectCompletion,
-    toTempo,
   )
 where
 
-import Codec.Midi (Midi (..))
-import qualified Codec.Midi as Midi
 import DTX2MIDI.DTX (DTX (..))
 import qualified DTX2MIDI.DTX as DTX
 import DTX2MIDI.DTX.Parser
+import DTX2MIDI.MIDI
+import qualified DTX2MIDI.MIDI as MIDI
 import Data.Function (on)
 import Data.List (groupBy, sortBy, (\\))
 import Data.Maybe (mapMaybe)
@@ -30,43 +29,29 @@ import Prelude hiding (readFile)
 
 type DrumSound = Music.Dur -> Music Music.Pitch
 
--- | MIDIデータからMIDIファイルへ変換
-toFile :: FilePath -> Midi -> IO ()
-toFile = exportMidiFile
-
 -- | DTXファイルからMIDIデータへ変換
-fromFile :: FilePath -> IO (Midi)
+fromFile :: FilePath -> IO (MIDI)
 fromFile fp = do
   dtx <- readFile fp
   toMIDI dtx
 
--- | Euterpeaの固定テンポ(bpm = 120, tempo = 500000)を上書きする
-updateFirstTempo :: Midi.Tempo -> Midi -> Midi
-updateFirstTempo tempo midi =
-  Midi
-    { Midi.fileType = Midi.fileType midi,
-      Midi.timeDiv = Midi.timeDiv midi,
-      Midi.tracks = mapTrack update $ Midi.tracks midi
-    }
-  where
-    mapTrack f tracks = map (\track -> map f track) tracks
-    update (0, Midi.TempoChange 500000) = (0, Midi.TempoChange tempo)
-    update t = t
+-- | MIDIデータをMIDIファイルとして保存
+toFile :: FilePath -> MIDI -> IO ()
+toFile = exportMidiFile
 
--- bpm (beat/minute) を tempo (μs/beat) に変換する
-toTempo :: Double -> Midi.Tempo
-toTempo bpm = round $ 1000000 / (bpm / 60)
+musicToMIDI :: (Music.ToMusic1 a) => Music a -> MIDI
+musicToMIDI = toMidi . perform
 
 -- | DTXデータをMIDIデータに変換
 --   NOTE: changeTempoは音価が変わるだけでBPM自体は変化しないため、
 --         global tempo (bpm 120) を無視して上書き
-toMIDI :: DTX -> IO (Midi)
+toMIDI :: DTX -> IO (MIDI)
 toMIDI dtx = do
   let group = groupBy sameKey filteredObjects
-  let midi = Music.line1 $ map toMeasure group
+  let music = Music.line1 $ map toMeasure group
   return $ case DTX.bpm dtx of
-    Nothing -> toMidi $ perform midi
-    Just b -> updateFirstTempo (toTempo b) $ toMidi $ perform midi
+    Nothing -> musicToMIDI music
+    Just b -> MIDI.updateInitialTempo (MIDI.bpmToTempo b) $ musicToMIDI music
   where
     toNotes o = objectValueToMIDINotes $ DTX.objectValue o
     toMeasure = Music.chord1 . mapMaybe toNotes
