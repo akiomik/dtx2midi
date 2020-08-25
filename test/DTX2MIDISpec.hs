@@ -13,12 +13,13 @@ spec :: Spec
 spec = do
   describe "keyCompletion" $ do
     it "returns filled measure ids" $ do
-      keyCompletion ["001", "005"] `shouldBe` (["001", "002", "003", "004", "005"])
+      keyCompletion ["001", "005"] `shouldBe` (["000", "001", "002", "003", "004", "005"])
 
   describe "objectCompletion" $ do
     it "returns missing measure objects that are filled with empty hi-hats" $ do
       objectCompletion ["001", "005"]
-        `shouldBe` ( [ Object "002" $ HiHatClose ["00"],
+        `shouldBe` ( [ Object "000" $ HiHatClose ["00"],
+                       Object "002" $ HiHatClose ["00"],
                        Object "003" $ HiHatClose ["00"],
                        Object "004" $ HiHatClose ["00"]
                      ]
@@ -44,7 +45,7 @@ spec = do
       let tracks =
             [ [ (0, Midi.ProgramChange chan 0),
                 (0, Midi.TempoChange 333333),
-                (0, Midi.NoteOn chan bd vel),
+                (96 * 4, Midi.NoteOn chan bd vel),
                 (0, Midi.NoteOn chan hh vel),
                 (48, Midi.NoteOff chan bd vel),
                 (0, Midi.NoteOff chan hh vel),
@@ -100,7 +101,7 @@ spec = do
       let tracks =
             [ [ (0, Midi.ProgramChange chan 0),
                 (0, Midi.TempoChange 500000),
-                (0, Midi.NoteOn chan bd vel),
+                (96 * 4, Midi.NoteOn chan bd vel),
                 (0, Midi.NoteOn chan hh vel),
                 (48, Midi.NoteOff chan bd vel),
                 (0, Midi.NoteOff chan hh vel),
@@ -154,7 +155,7 @@ spec = do
       let tracks =
             [ [ (0, Midi.ProgramChange chan 0),
                 (0, Midi.TempoChange 500000),
-                (0, Midi.NoteOn chan bd vel),
+                (96 * 4, Midi.NoteOn chan bd vel),
                 (96, Midi.NoteOff chan bd vel),
                 (0, Midi.NoteOn chan bd vel),
                 (96, Midi.NoteOff chan bd vel),
@@ -199,7 +200,7 @@ spec = do
       let tracks =
             [ [ (0, Midi.ProgramChange chan 0),
                 (0, Midi.TempoChange 500000),
-                (0, Midi.NoteOn chan bd vel),
+                (96 * 4, Midi.NoteOn chan bd vel),
                 (96, Midi.NoteOff chan bd vel),
                 (0, Midi.NoteOn chan bd vel),
                 (96, Midi.NoteOff chan bd vel),

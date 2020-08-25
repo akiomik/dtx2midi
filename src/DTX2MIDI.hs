@@ -97,7 +97,7 @@ objectCompletion keys =
 -- | 疎になっている小節のキーを補完する
 keyCompletion :: [DTX.Key] -> [DTX.Key]
 keyCompletion ts =
-  map (T.pack . format) [1 .. ((read $ T.unpack $ last ts) :: Int)]
+  map (T.pack . format) [0 .. ((read $ T.unpack $ last ts) :: Int)]
   where
     format a
       | a < 10 = "00" ++ show a
