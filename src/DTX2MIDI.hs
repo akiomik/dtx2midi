@@ -45,20 +45,20 @@ musicToMIDI = toMidi . perform
 --         global tempo (bpm 120) を無視して上書き
 dtxToMIDI :: DTX -> IO (MIDI)
 dtxToMIDI dtx = do
-  let group = groupBy sameKey filteredObjects
-  let music = Music.line1 $ map toMeasure group
+  let grouped = groupBy isSameMeasure $ completedObjects $ DTX.objects dtx
+  let music = Music.line1 $ map objectsToMIDIMeasure grouped
   return $ case DTX.bpm dtx of
     Nothing -> musicToMIDI music
     Just b -> MIDI.updateInitialTempo (MIDI.bpmToTempo b) $ musicToMIDI music
   where
-    toNotes o = objectValueToMIDINotes $ DTX.objectValue o
-    toMeasure = Music.chord1 . mapMaybe toNotes
-    sameKey = (==) `on` DTX.objectKey
-    objects = DTX.objects dtx
-    keys = map DTX.objectKey $ filter DTX.isNoteObject objects
-    completion = objectCompletion keys
-    fullObjects = sortBy (compare `on` DTX.objectKey) $ objects ++ completion
-    filteredObjects = filter (\o -> DTX.objectKey o /= "000") fullObjects -- BGM用の小節000は無視
+    isSameMeasure = (==) `on` DTX.objectKey
+
+-- | 同一小節のDTXオブジェクトをMIDIの1小節に変換
+objectsToMIDIMeasure :: [DTX.Object] -> Music Music.Pitch
+objectsToMIDIMeasure =
+  Music.chord1 . mapMaybe toNotes
+  where
+    toNotes = objectValueToMIDINotes . DTX.objectValue
 
 -- | DTXのオブジェクトからドラム音源へマッピング
 -- TODO: ボリューム等の対応
@@ -103,3 +103,11 @@ keyCompletion ts =
       | a < 10 = "00" ++ show a
       | a < 100 = "0" ++ show a
       | otherwise = show a
+
+-- | 不足している小節を補完したDTXオブジェクトを返す
+completedObjects :: [DTX.Object] -> [DTX.Object]
+completedObjects objects =
+  sortBy (compare `on` DTX.objectKey) $ objects ++ completion
+  where
+    completion = objectCompletion completionKeys
+    completionKeys = map DTX.objectKey $ filter DTX.isNoteObject objects
