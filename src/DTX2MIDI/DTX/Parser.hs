@@ -23,8 +23,12 @@ import Data.Conduit.Attoparsec (sinkParser)
 import qualified Data.Conduit.Binary as CB
 import qualified Data.Conduit.List as CL
 import Data.Conduit.Text (decode, utf8)
-import Data.Text (Text, pack, singleton)
+import Data.Text (Text, pack, singleton, strip)
 import Prelude hiding (readFile, take)
+
+isEndOfValue :: Char -> Bool
+isEndOfValue ';' = True
+isEndOfValue c = isEndOfLine c
 
 spaceWithoutEOL :: Parser Char
 spaceWithoutEOL =
@@ -68,7 +72,13 @@ parseChannel :: Parser Text
 parseChannel = takeTill (\w -> w == ' ' || w == ':')
 
 parseHeaderValue :: Parser Text
-parseHeaderValue = takeTill isEndOfLine
+parseHeaderValue = takeTill isEndOfValue
+
+parseInlineComment :: Parser Comment
+parseInlineComment = do
+  skipMany spaceWithoutEOL
+  char ';'
+  takeTill isEndOfLine
 
 parseHeader :: Parser Header
 parseHeader = do
@@ -78,7 +88,8 @@ parseHeader = do
   option ':' $ char ':'
   skipMany spaceWithoutEOL
   value <- parseHeaderValue
-  Header <$> pure key <*> pure chan <*> pure value
+  option "" parseInlineComment -- TODO: parse inline comment
+  Header <$> pure key <*> pure chan <*> (pure $ strip value)
 
 parseHeaderLine :: Parser Header
 parseHeaderLine = parseHeader <* endOfLine
@@ -97,7 +108,7 @@ parseNoteObjectValue = do
     parsePlaceHolder = singleton <$> char '_'
 
 parseUnsupportedEventObjectValue :: Parser Text
-parseUnsupportedEventObjectValue = takeTill isEndOfLine
+parseUnsupportedEventObjectValue = takeTill isEndOfValue
 
 isNoteEvent :: Channel -> Bool
 isNoteEvent chan
@@ -128,10 +139,12 @@ parseObject = do
   if isNoteEvent chan
     then do
       value <- parseNoteObjectValue
+      option "" parseInlineComment -- TODO: parse inline comment
       Object <$> pure key <*> pure (noteEventToObjectValue chan value)
     else do
       value <- parseUnsupportedEventObjectValue
-      Object <$> pure key <*> pure (UnsupportedEvent chan value)
+      option "" parseInlineComment -- TODO: parse inline comment
+      Object <$> pure key <*> pure (UnsupportedEvent chan $ strip value)
 
 parseObjectLine :: Parser Object
 parseObjectLine = parseObject <* endOfLine
