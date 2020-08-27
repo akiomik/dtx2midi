@@ -17,10 +17,11 @@ module DTX2MIDI.DTX
     isComment,
     isObject,
     isBPM,
+    isBaseBPM,
     isNoteObject,
     headers,
     objects,
-    bpm,
+    baseBPM,
   )
 where
 
@@ -97,9 +98,12 @@ isObject :: Line -> Bool
 isObject (LineObject _) = True
 isObject _ = False
 
-isBPM :: Header -> Bool
-isBPM (Header "BPM" _ _) = True
-isBPM _ = False
+isBPM :: Header -> Channel -> Bool
+isBPM (Header "BPM" c _) c' = c == c'
+isBPM _ _ = False
+
+isBaseBPM :: Header -> Bool
+isBaseBPM header = isBPM header ""
 
 isNoteObject :: Object -> Bool
 isNoteObject (Object _ (UnsupportedEvent _ _)) = False
@@ -111,9 +115,9 @@ headers dtx = (maybeToList . header) =<< dtx
 objects :: DTX -> [Object]
 objects dtx = (maybeToList . object) =<< dtx
 
-bpm :: DTX -> Maybe Double
-bpm dtx =
-  fmap readValue $ listToMaybe $ filter isBPM $ headers dtx
+baseBPM :: DTX -> Maybe Double
+baseBPM dtx =
+  fmap readValue $ listToMaybe $ filter isBaseBPM $ headers dtx
   where
     readValue :: Header -> Double
     readValue = read . unpack . headerValue

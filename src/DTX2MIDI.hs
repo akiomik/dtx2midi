@@ -47,7 +47,7 @@ dtxToMIDI :: DTX -> IO (MIDI)
 dtxToMIDI dtx = do
   let grouped = groupBy isSameMeasure $ completedObjects $ DTX.objects dtx
   let music = Music.line1 $ map objectsToMIDIMeasure grouped
-  return $ case DTX.bpm dtx of
+  return $ case DTX.baseBPM dtx of
     Nothing -> musicToMIDI music
     Just b -> MIDI.updateInitialTempo (MIDI.bpmToTempo b) $ musicToMIDI music
   where

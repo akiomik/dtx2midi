@@ -36,14 +36,21 @@ spec = do
             ]
       objects dtx `shouldBe` (expected)
 
-  describe "bpm" $ do
-    it "returns bpm when BPM is defined in the headers" $ do
+  describe "baseBPM" $ do
+    it "returns base bpm when base BPM is defined in the headers" $ do
       let dtx =
             [ LineHeader $ Header "TITLE" "" "foo",
               LineHeader $ Header "BPM" "" "100"
             ]
-      bpm dtx `shouldBe` (Just 100)
+      baseBPM dtx `shouldBe` (Just 100)
+
+    it "returns Nothing when base BPM is not defined in the headers" $ do
+      let dtx =
+            [ LineHeader $ Header "TITLE" "" "foo",
+              LineHeader $ Header "BPM" "01" "100"
+            ]
+      baseBPM dtx `shouldBe` (Nothing)
 
     it "returns Nothing when BPM is not defined in the headers" $ do
       let dtx = [LineHeader $ Header "TITLE" "" "foo"]
-      bpm dtx `shouldBe` (Nothing)
+      baseBPM dtx `shouldBe` (Nothing)
