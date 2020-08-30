@@ -39,6 +39,13 @@ packages:
       sha256: aea6b83dd91703fd130d98ecfed88b8f16841b22990c837c8fde89f9f6cca809
   original:
     hackage: lazysmallcheck-0.6@sha256:dac7a1e4877681f1260309e863e896674dd6efc1159897b7945893e693f2a6bc,1696
+- completed:
+    hackage: charsetdetect-1.1.0.2@sha256:f5aa040983c784611f8a486a0fcda3ec13005eff6f0515c4ab4aa323f6199cd8,8273
+    pantry-tree:
+      size: 7322
+      sha256: d7351773f7f715279416a9f0c84cc44dc1aeae996d29130a6b86ae776dbfb279
+  original:
+    hackage: charsetdetect-1.1.0.2@sha256:f5aa040983c784611f8a486a0fcda3ec13005eff6f0515c4ab4aa323f6199cd8,8273
 snapshots:
 - completed:
     size: 532379

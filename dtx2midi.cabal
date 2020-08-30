@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 1d96aa7b98684bc39ef3f9e710f68c7668791510966385e09d0d80d090759ff3
+-- hash: 0c855244af262f633ab421a9cefaf9d615c0e7dba5d06908eee22cb597b80e52
 
 name:           dtx2midi
 version:        0.2.2.0
@@ -61,6 +61,7 @@ executable dtx2midi
     , attoparsec
     , base >=4.7 && <5
     , bytestring
+    , charsetdetect
     , conduit >=1.0
     , conduit-extra
     , dtx2midi
