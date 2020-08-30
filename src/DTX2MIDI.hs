@@ -7,6 +7,7 @@ module DTX2MIDI
     -- for testing
     keyCompletion,
     objectCompletion,
+    completedNoteObjects,
   )
 where
 
@@ -45,7 +46,7 @@ musicToMIDI = toMidi . perform
 --         global tempo (bpm 120) を無視して上書き
 dtxToMIDI :: DTX -> IO (MIDI)
 dtxToMIDI dtx = do
-  let grouped = groupBy isSameMeasure $ completedObjects $ DTX.objects dtx
+  let grouped = groupBy isSameMeasure $ completedNoteObjects $ DTX.objects dtx
   let music = Music.line1 $ map objectsToMIDIMeasure grouped
   return $ case DTX.baseBPM dtx of
     Nothing -> musicToMIDI music
@@ -104,10 +105,11 @@ keyCompletion ts =
       | a < 100 = "0" ++ show a
       | otherwise = show a
 
--- | 不足している小節を補完したDTXオブジェクトを返す
-completedObjects :: [DTX.Object] -> [DTX.Object]
-completedObjects objects =
-  sortBy (compare `on` DTX.objectKey) $ objects ++ completion
+-- | 不足している小節を補完したDTXの音符オブジェクトを返す
+completedNoteObjects :: [DTX.Object] -> [DTX.Object]
+completedNoteObjects objects =
+  sortBy (compare `on` DTX.objectKey) $ noteObjects ++ completion
   where
     completion = objectCompletion completionKeys
-    completionKeys = map DTX.objectKey $ filter DTX.isNoteObject objects
+    completionKeys = map DTX.objectKey noteObjects
+    noteObjects = filter DTX.isNoteObject objects
