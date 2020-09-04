@@ -28,6 +28,8 @@ jobs:
           ${{ runner.os }}-build-
           ${{ runner.os }}-
 
+    - name: Run HLint
+      run: curl -sSL https://raw.github.com/ndmitchell/hlint/master/misc/run.sh | sh -s .
     - name: Dependencies
       run: sudo apt-get -y install libasound2-dev
     - name: Build
