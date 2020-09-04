@@ -65,4 +65,4 @@ spec = do
                 Midi.tracks = inputTracks
               }
 
-      updateInitialTempo 250000 inputMidi `shouldBe` (expectedMidi)
+      updateInitialTempo 250000 inputMidi `shouldBe` expectedMidi

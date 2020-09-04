@@ -25,7 +25,8 @@ module DTX2MIDI.DTX
   )
 where
 
-import Data.Maybe (listToMaybe, maybeToList)
+import Data.List (find)
+import Data.Maybe (maybeToList)
 import Data.Text (Text, pack, singleton, unpack)
 
 type DTX = [Line]
@@ -117,7 +118,7 @@ objects dtx = (maybeToList . object) =<< dtx
 
 baseBPM :: DTX -> Maybe Double
 baseBPM dtx =
-  fmap readValue $ listToMaybe $ filter isBaseBPM $ headers dtx
+  fmap readValue $ find isBaseBPM $ headers dtx
   where
     readValue :: Header -> Double
     readValue = read . unpack . headerValue

@@ -31,7 +31,7 @@ import Prelude hiding (readFile)
 type DrumSound = Music.Dur -> Music Music.Pitch
 
 -- | DTXファイルの読み込み
-fromDTXFile :: FilePath -> IO (DTX)
+fromDTXFile :: FilePath -> IO DTX
 fromDTXFile = readFile
 
 -- | MIDIデータをMIDIファイルとして保存
@@ -44,7 +44,7 @@ musicToMIDI = toMidi . perform
 -- | DTXデータをMIDIデータに変換
 --   NOTE: changeTempoは音価が変わるだけでBPM自体は変化しないため、
 --         global tempo (bpm 120) を無視して上書き
-dtxToMIDI :: DTX -> IO (MIDI)
+dtxToMIDI :: DTX -> IO MIDI
 dtxToMIDI dtx = do
   let grouped = groupBy isSameMeasure $ completedNoteObjects $ DTX.objects dtx
   let music = Music.line1 $ map objectsToMIDIMeasure grouped
@@ -84,7 +84,7 @@ dtxNotesToMIDINotes drum notes =
   Music.line $ map (\note -> dtxNoteToMIDINote drum note dur) notes
   where
     dur = toDur notes
-    toDur notes = 1 % (toInteger $ length notes)
+    toDur notes = 1 % toInteger (length notes)
 
 dtxNoteToMIDINote :: DrumSound -> DTX.Note -> Music.Dur -> Music Music.Pitch
 dtxNoteToMIDINote _ "00" dur = Music.rest dur

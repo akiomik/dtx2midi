@@ -37,7 +37,7 @@ spaceWithoutEOL :: Parser Char
 spaceWithoutEOL =
   satisfy isSpaceWithoutEOL
   where
-    isSpaceWithoutEOL c = (isSpace c) && (not $ isEndOfLine c)
+    isSpaceWithoutEOL c = isSpace c && not (isEndOfLine c)
 
 parseChannelHeaderKey :: Parser Key
 parseChannelHeaderKey =
@@ -87,7 +87,7 @@ parseHeader = do
   skipMany spaceWithoutEOL
   value <- parseHeaderValue
   option "" parseInlineComment -- TODO: parse inline comment
-  Header <$> pure key <*> pure chan <*> (pure $ strip value)
+  pure (Header key chan $ strip value)
 
 parseHeaderLine :: Parser Header
 parseHeaderLine = parseHeader <* endOfLine
@@ -100,9 +100,9 @@ parseObjectKey = do
 
 parseNoteObjectValue :: Parser [Note]
 parseNoteObjectValue = do
-  (filter (/= ("_" :: Text))) <$> many (parsePlaceHolder <|> parseNote)
+  filter (/= ("_" :: Text)) <$> many (parsePlaceHolder <|> parseNote)
   where
-    parseNote = pack <$> (count 2 $ satisfy $ inClass "0-9A-Z")
+    parseNote = pack <$> count 2 (satisfy $ inClass "0-9A-Z")
     parsePlaceHolder = singleton <$> char '_'
 
 parseUnsupportedEventObjectValue :: Parser Text
@@ -138,11 +138,11 @@ parseObject = do
     then do
       value <- parseNoteObjectValue
       option "" parseInlineComment -- TODO: parse inline comment
-      Object <$> pure key <*> pure (noteEventToObjectValue chan value)
+      pure (Object key $ noteEventToObjectValue chan value)
     else do
       value <- parseUnsupportedEventObjectValue
       option "" parseInlineComment -- TODO: parse inline comment
-      Object <$> pure key <*> pure (UnsupportedEvent chan $ strip value)
+      pure $ Object key (UnsupportedEvent chan $ strip value)
 
 parseObjectLine :: Parser Object
 parseObjectLine = parseObject <* endOfLine

@@ -19,7 +19,7 @@ updateInitialTempo :: Midi.Tempo -> MIDI -> MIDI
 updateInitialTempo tempo midi =
   midi {Midi.tracks = mapTrack update $ Midi.tracks midi}
   where
-    mapTrack f tracks = map (\track -> map f track) tracks
+    mapTrack f tracks = map (map f) tracks
     update (0, Midi.TempoChange 500000) = (0, Midi.TempoChange tempo)
     update t = t
 
