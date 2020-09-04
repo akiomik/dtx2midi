@@ -17,7 +17,7 @@ import Control.Monad.Trans.Resource (MonadThrow, runResourceT)
 import DTX2MIDI.DTX
 import Data.Attoparsec.Text
 import Data.ByteString (ByteString)
-import Data.Char (isSpace)
+import Data.Char (isAlphaNum, isSpace)
 import Data.Conduit (ConduitT, Void, runConduit, (.|))
 import Data.Conduit.Attoparsec (sinkParser)
 import qualified Data.Conduit.Binary as CB
@@ -25,6 +25,9 @@ import qualified Data.Conduit.List as CL
 import Data.Conduit.Text (decode, utf8)
 import Data.Text (Text, pack, singleton, strip)
 import Prelude hiding (readFile, take)
+
+alphaNum :: Parser Char
+alphaNum = satisfy isAlphaNum
 
 isEndOfValue :: Char -> Bool
 isEndOfValue ';' = True
@@ -36,79 +39,36 @@ spaceWithoutEOL =
   where
     isSpaceWithoutEOL c = (isSpace c) && (not $ isEndOfLine c)
 
--- TODO:
--- チャンネル指定が必要なもののみ記述するようにして、^[A-Z]+でパースするようにしたい
-parseHeaderKey :: Parser Key
-parseHeaderKey =
-  string "TITLE"
-    <|> string "ARTIST"
-    <|> string "COMMENT"
-    <|> string "GENRE"
-    <|> string "DLEVEL"
-    <|> string "GLEVEL"
-    <|> string "BLEVEL"
-    <|> string "HIDDENLEVEL"
-    <|> string "BPM"
-    <|> string "BASEBPM"
-    <|> string "STAGEFILE"
-    <|> string "PREVIEW"
-    <|> string "PREIMAGE"
-    <|> string "PREMOVIE"
-    <|> string "BACKGROUND"
-    <|> string "BACKGROUND_GR"
-    <|> string "BMP"
-    <|> string "BMPTEX"
-    <|> string "WALL"
-    <|> string "SOUND_NOWLOADING"
-    <|> string "SOUND_STAGEFAILED"
-    <|> string "SOUND_FULLCOMBO"
-    <|> string "RESULTIMAGE"
-    <|> string "RESULTIMAGE_SS"
-    <|> string "RESULTIMAGE_S"
-    <|> string "RESULTIMAGE_A"
-    <|> string "RESULTIMAGE_B"
-    <|> string "RESULTIMAGE_C"
-    <|> string "RESULTIMAGE_D"
-    <|> string "RESULTIMAGE_E"
-    <|> string "RESULTSOUND"
-    <|> string "RESULTSOUND_SS"
-    <|> string "RESULTSOUND_S"
-    <|> string "RESULTSOUND_A"
-    <|> string "RESULTSOUND_B"
-    <|> string "RESULTSOUND_C"
-    <|> string "RESULTSOUND_D"
-    <|> string "RESULTSOUND_E"
-    <|> string "RESULTMOVIE"
-    <|> string "RESULTMOVIE_SS"
-    <|> string "RESULTMOVIE_S"
-    <|> string "RESULTMOVIE_A"
-    <|> string "RESULTMOVIE_B"
-    <|> string "RESULTMOVIE_C"
-    <|> string "RESULTMOVIE_D"
-    <|> string "RESULTMOVIE_E"
+parseChannelHeaderKey :: Parser Key
+parseChannelHeaderKey =
+  string "BPM"
     <|> string "WAV"
     <|> string "VOLUME"
     <|> string "WAVVOL"
-    <|> string "BGMWAV"
     <|> string "PAN"
     <|> string "WAVPAN"
     <|> string "SIZE"
+    <|> string "BMP"
+    <|> string "BMPTEX"
     <|> string "BGA"
     <|> string "BGAPAN"
-    <|> string "USE556X710BGAAVI"
     <|> string "AVI"
     <|> string "VIDEO"
     <|> string "AVIPAN"
-    <|> string "MIDINOTE"
-    <|> string "RANDOM"
-    <|> string "IF"
-    <|> string "ENDIF"
-    <|> string "DTXVPLAYSPEED"
-    <|> string "DTXC_CHIPPALETTE"
-    <|> string "DTXC_LANEBINDEDCHIP"
 
 parseChannel :: Parser Text
 parseChannel = takeTill (\w -> w == ' ' || w == ':')
+
+parseUnknownHeaderKey :: Parser Text
+parseUnknownHeaderKey = do
+  head <- letter
+  tail <- many (alphaNum <|> char '_')
+  return $ pack $ head : tail
+
+parseHeaderKeyWithChannel :: Parser (Key, Channel)
+parseHeaderKeyWithChannel =
+  ((,) <$> parseChannelHeaderKey <*> parseChannel)
+    <|> ((,) <$> parseUnknownHeaderKey <*> pure "")
 
 parseHeaderValue :: Parser Text
 parseHeaderValue = takeTill isEndOfValue
@@ -122,8 +82,7 @@ parseInlineComment = do
 parseHeader :: Parser Header
 parseHeader = do
   char '#'
-  key <- parseHeaderKey
-  chan <- parseChannel
+  (key, chan) <- parseHeaderKeyWithChannel
   option ':' $ char ':'
   skipMany spaceWithoutEOL
   value <- parseHeaderValue

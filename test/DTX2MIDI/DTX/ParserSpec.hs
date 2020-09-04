@@ -11,11 +11,14 @@ import Test.Hspec.Attoparsec
 spec :: Spec
 spec = do
   describe "parseHeaderLine" $ do
-    it "parse a header" $ do
-      ("#TITLE: FOO BAR\n" :: Text) ~> parseHeaderLine `shouldParse` (Header "TITLE" "" "FOO BAR")
+    it "parse a known header" $ do
+      ("#WAV: foo-bar.xa\n" :: Text) ~> parseHeaderLine `shouldParse` (Header "WAV" "" "foo-bar.xa")
 
-    it "parse a header with channel" $ do
+    it "parse a known header with channel" $ do
       ("#WAV1Z: foo-bar1z.xa\n" :: Text) ~> parseHeaderLine `shouldParse` (Header "WAV" "1Z" "foo-bar1z.xa")
+
+    it "parse an unknown header" $ do
+      ("#FOOBAR: FOO BAR\n" :: Text) ~> parseHeaderLine `shouldParse` (Header "FOOBAR" "" "FOO BAR")
 
     it "parse a header with inline comment" $ do
       -- TODO: parse inline comment
