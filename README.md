@@ -20,7 +20,7 @@ Available options:
 
 ## Download
 
-The binaries for linux and macOS can be downloaded from the [release page](https://github.com/akiomik/dtx2midi/releases/latest).
+The binaries for Linux, macOS and Windows can be downloaded from the [release page](https://github.com/akiomik/dtx2midi/releases/latest).
 
 ## Build from source
 
