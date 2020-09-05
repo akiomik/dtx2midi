@@ -2,12 +2,16 @@ name: Build
 
 on:
   release:
-    types: [published]
+    types: [created]
 
 jobs:
-  linux:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macOS-latest, windows-latest]
 
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
 
     steps:
     - uses: actions/checkout@v2
@@ -18,25 +22,17 @@ jobs:
         enable-stack: true
         stack-version: 'latest'
 
-    - name: Cache
-      uses: actions/cache@v1
-      env:
-        cache-name: cache-cabal
-      with:
-        path: ~/.stack
-        key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/*.cabal') }}-${{ hashFiles('**/stack.yaml.lock') }}
-        restore-keys: |
-          ${{ runner.os }}-build-${{ env.cache-name }}-
-          ${{ runner.os }}-build-
-          ${{ runner.os }}-
-
-    - name: Dependencies
+    - name: Dependencies for Linux
+      if: runner.os == 'Linux'
       run: sudo apt-get -y install libasound2-dev
+
     - name: Build
       run: stack build
-    - name: Create linux executable
+
+    - name: Create executable for Linux and macOS
+      if: ${{ runner.os == 'Linux' || runner.os == 'macOS' }}
       run: |
-        export DEST_ROOT="dtx2midi-linux"
+        export DEST_ROOT="dtx2midi"
         export DEST_BIN="${DEST_ROOT}/bin"
         export DEST_DOC="${DEST_ROOT}/doc"
         export STACK_DOC="$(stack path --snapshot-install-root)/doc"
@@ -45,90 +41,27 @@ jobs:
         strip ${DEST_BIN}/dtx2midi
         cp -R $STACK_DOC $DEST_DOC
         cp LICENSE $DEST_DOC
+        zip -r dtx2midi.zip ${DEST_ROOT}
 
-    - uses: actions/upload-artifact@v2
-      with:
-        name: dtx2midi-linux
-        path: dtx2midi-linux
+    - name: Create executable for Windows
+      if: runner.os == 'Windows'
+      run: |
+        $DEST_ROOT = "dtx2midi"
+        $DEST_BIN = Join-Path ${DEST_ROOT} bin
+        $DEST_DOC = Join-Path ${DEST_ROOT} doc
+        $STACK_SNAPSHOT_ROOT = &"stack" path --snapshot-install-root
+        $STACK_DOC = Join-Path ${STACK_SNAPSHOT_ROOT} doc
+        mkdir ${DEST_BIN}
+        stack install --local-bin-path=${DEST_BIN}
+        Copy-Item -Path ${STACK_DOC} -Destination ${DEST_DOC} -Recurse
+        Copy-Item -Path LICENSE -Destination ${DEST_DOC}
+        Compress-Archive -Path ${DEST_ROOT} -DestinationPath dtx2midi.zip
 
-  macos:
-
-    runs-on: macOS-latest
-
-    steps:
-    - uses: actions/checkout@v2
-    - uses: actions/setup-haskell@v1.1
-      with:
-        ghc-version: '8.8.3'
-        cabal-version: '3.0'
-        enable-stack: true
-        stack-version: 'latest'
-
-    - name: Cache
-      uses: actions/cache@v1
+    - uses: actions/upload-release-asset@v1
       env:
-        cache-name: cache-cabal
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        path: ~/.stack
-        key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/*.cabal') }}-${{ hashFiles('**/stack.yaml.lock') }}
-        restore-keys: |
-          ${{ runner.os }}-build-${{ env.cache-name }}-
-          ${{ runner.os }}-build-
-          ${{ runner.os }}-
-
-    - name: Build
-      run: stack build
-    - name: Create macos executable
-      run: |
-        export DEST_ROOT="dtx2midi-macos"
-        export DEST_BIN="${DEST_ROOT}/bin"
-        export DEST_DOC="${DEST_ROOT}/doc"
-        export STACK_DOC="$(stack path --snapshot-install-root)/doc"
-        mkdir -p ${DEST_BIN}
-        stack install --local-bin-path=${DEST_BIN}
-        strip ${DEST_BIN}/dtx2midi
-        cp -R $STACK_DOC $DEST_DOC
-        cp LICENSE $DEST_DOC
-
-    - uses: actions/upload-artifact@v2
-      with:
-        name: dtx2midi-macos
-        path: dtx2midi-macos
-
-  # windows:
-  #
-  #   runs-on: windows-latest
-  #
-  #   steps:
-  #   - uses: actions/checkout@v2
-  #   - uses: actions/setup-haskell@v1.1
-  #     with:
-  #       ghc-version: '8.8.3'
-  #       cabal-version: '3.0'
-  #       enable-stack: true
-  #       stack-version: 'latest'
-  #
-  #   - name: Cache
-  #     uses: actions/cache@v1
-  #     env:
-  #       cache-name: cache-cabal
-  #     with:
-  #       path: ~/.stack
-  #       key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/*.cabal') }}-${{ hashFiles('**/stack.yaml.lock') }}
-  #       restore-keys: |
-  #         ${{ runner.os }}-build-${{ env.cache-name }}-
-  #         ${{ runner.os }}-build-
-  #         ${{ runner.os }}-
-  #
-  #   - name: Build
-  #     run: stack build
-  #   - name: Create windows executable
-  #     run: |
-  #       @set DEST="dtx2midi-windows/bin"
-  #       mkdir %DEST%
-  #       stack install --local-bin-path=%DEST%
-  #
-  #   - uses: actions/upload-artifact@v2
-  #     with:
-  #       name: dtx2midi-windows
-  #       path: dtx2midi-windows
+        upload_url: ${{ github.event.release.upload_url }}
+        asset_path: dtx2midi.zip
+        asset_name: dtx2midi-${{ runner.os }}.zip
+        asset_content_type: application/zip
