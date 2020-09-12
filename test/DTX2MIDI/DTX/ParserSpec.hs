@@ -44,11 +44,17 @@ spec = do
     it "parse an object with placeholders" $ do
       ("#00112 0002_____0002\n" :: Text) ~> parseObjectLine `shouldParse` Object "001" (Snare ["00", "02", "00", "02"])
 
+    it "parse a real number object" $ do
+      ("#00102 0.5\n" :: Text) ~> parseObjectLine `shouldParse` Object "001" (MeasureLengthRatio 0.5)
+
+    it "parse a real number object with inline comment" $ do
+      ("#00102 0.5 ;custom measure length\n" :: Text) ~> parseObjectLine `shouldParse` Object "001" (MeasureLengthRatio 0.5)
+
     it "parse an object with unsupported channel" $ do
-      ("#00102 0.5\n" :: Text) ~> parseObjectLine `shouldParse` Object "001" (UnsupportedEvent "02" "0.5")
+      ("#00101 10\n" :: Text) ~> parseObjectLine `shouldParse` Object "001" (UnsupportedEvent "01" "10")
 
     it "parse an object with unsupported channel and inline comment" $ do
-      ("#00102 0.5 ;half measure\n" :: Text) ~> parseObjectLine `shouldParse` Object "001" (UnsupportedEvent "02" "0.5")
+      ("#00101 10 ;half measure\n" :: Text) ~> parseObjectLine `shouldParse` Object "001" (UnsupportedEvent "01" "10")
 
   describe "parseCommentLine" $ do
     it "parse a comment line" $ do

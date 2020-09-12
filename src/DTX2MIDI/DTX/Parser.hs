@@ -105,6 +105,9 @@ parseNoteObjectValue = do
     parseNote = pack <$> count 2 (satisfy $ inClass "0-9A-Z")
     parsePlaceHolder = singleton <$> char '_'
 
+parseRealNumberObjectValue :: Parser Double
+parseRealNumberObjectValue = double
+
 parseUnsupportedEventObjectValue :: Parser Text
 parseUnsupportedEventObjectValue = takeTill isEndOfValue
 
@@ -127,6 +130,14 @@ noteEventToObjectValue "1A" = LeftCymbal
 noteEventToObjectValue "1B" = LeftPedal
 noteEventToObjectValue "1C" = LeftBassDrum
 
+isRealNumberValueEvent :: Channel -> Bool
+isRealNumberValueEvent chan
+  | chan == "02" = True
+  | otherwise = False
+
+realNumberValueEventToObjectValue :: Channel -> Double -> ObjectValue
+realNumberValueEventToObjectValue "02" = MeasureLengthRatio
+
 parseObject :: Parser Object
 parseObject = do
   char '#'
@@ -134,12 +145,16 @@ parseObject = do
   chan <- parseChannel
   option ':' $ char ':'
   skipMany spaceWithoutEOL
-  if isNoteEvent chan
-    then do
+  case (isNoteEvent chan, isRealNumberValueEvent chan) of
+    (True, _) -> do
       value <- parseNoteObjectValue
       option "" parseInlineComment -- TODO: parse inline comment
       pure (Object key $ noteEventToObjectValue chan value)
-    else do
+    (_, True) -> do
+      value <- parseRealNumberObjectValue
+      option "" parseInlineComment -- TODO: parse inline comment
+      pure (Object key $ realNumberValueEventToObjectValue chan value)
+    (_, _) -> do
       value <- parseUnsupportedEventObjectValue
       option "" parseInlineComment -- TODO: parse inline comment
       pure $ Object key (UnsupportedEvent chan $ strip value)

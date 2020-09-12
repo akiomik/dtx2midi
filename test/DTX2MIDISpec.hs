@@ -33,10 +33,11 @@ spec = do
               Object "001" $ Snare ["00", "02", "00", "02"],
               Object "001" $ BassDrum ["03", "00", "00", "00", "03", "03", "00", "00"],
               Object "002" $ UnsupportedEvent "61" "61",
-              Object "004" $ HiHatClose ["01", "01", "01", "01", "01", "01", "01", "01"],
-              Object "004" $ Snare ["00", "02", "00", "02"],
-              Object "004" $ BassDrum ["03", "00", "00", "00", "03", "03", "00", "00"],
-              Object "005" $ UnsupportedEvent "61" "61"
+              Object "003" $ MeasureLengthRatio 0.5,
+              Object "005" $ HiHatClose ["01", "01", "01", "01", "01", "01", "01", "01"],
+              Object "005" $ Snare ["00", "02", "00", "02"],
+              Object "005" $ BassDrum ["03", "00", "00", "00", "03", "03", "00", "00"],
+              Object "006" $ UnsupportedEvent "61" "61"
             ]
       let expected =
             [ Object "000" $ HiHatClose ["00"],
@@ -45,9 +46,10 @@ spec = do
               Object "001" $ BassDrum ["03", "00", "00", "00", "03", "03", "00", "00"],
               Object "002" $ HiHatClose ["00"],
               Object "003" $ HiHatClose ["00"],
-              Object "004" $ HiHatClose ["01", "01", "01", "01", "01", "01", "01", "01"],
-              Object "004" $ Snare ["00", "02", "00", "02"],
-              Object "004" $ BassDrum ["03", "00", "00", "00", "03", "03", "00", "00"]
+              Object "004" $ HiHatClose ["00"],
+              Object "005" $ HiHatClose ["01", "01", "01", "01", "01", "01", "01", "01"],
+              Object "005" $ Snare ["00", "02", "00", "02"],
+              Object "005" $ BassDrum ["03", "00", "00", "00", "03", "03", "00", "00"]
             ]
       completedNoteObjects input `shouldBe` expected
 
@@ -190,8 +192,9 @@ spec = do
       -- input
       let dtx =
             [ LineObject $ Object "001" $ BassDrum ["03", "03", "03", "03"],
-              LineObject $ Object "002" $ UnsupportedEvent "02" "0.5",
-              LineObject $ Object "003" $ BassDrum ["03", "03", "03", "03"]
+              LineObject $ Object "002" $ UnsupportedEvent "01" "10",
+              LineObject $ Object "003" $ MeasureLengthRatio 0.5,
+              LineObject $ Object "004" $ BassDrum ["03", "03", "03", "03"]
             ]
 
       -- expected
@@ -206,7 +209,7 @@ spec = do
                 (96, Midi.NoteOff chan bd vel),
                 (0, Midi.NoteOn chan bd vel),
                 (96, Midi.NoteOff chan bd vel),
-                (96 * 4, Midi.NoteOn chan bd vel),
+                (96 * 4 * 2, Midi.NoteOn chan bd vel),
                 (96, Midi.NoteOff chan bd vel),
                 (0, Midi.NoteOn chan bd vel),
                 (96, Midi.NoteOff chan bd vel),

@@ -60,6 +60,7 @@ data ObjectValue
   | LeftCymbal [Note]
   | LeftPedal [Note]
   | LeftBassDrum [Note]
+  | MeasureLengthRatio Double
   | UnsupportedEvent Channel Text
   deriving (Show, Eq)
 
@@ -108,6 +109,7 @@ isBaseBPM header = isBPM header ""
 
 isNoteObject :: Object -> Bool
 isNoteObject (Object _ (UnsupportedEvent _ _)) = False
+isNoteObject (Object _ (MeasureLengthRatio _)) = False
 isNoteObject _ = True
 
 headers :: DTX -> [Header]
