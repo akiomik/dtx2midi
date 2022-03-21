@@ -59,7 +59,7 @@ spec = do
     let bd = 35
     let sd = 38
     let hh = 42
-    let genMidi = \tracks ->
+    let genMidi tracks =
           Midi
             { Midi.fileType = Midi.SingleTrack,
               Midi.timeDiv = Midi.TicksPerBeat 96,
